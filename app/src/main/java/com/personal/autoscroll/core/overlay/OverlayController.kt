@@ -25,7 +25,11 @@ class OverlayController @Inject constructor(
         if (!canDrawOverlays() || compactOverlay != null) return
 
         val overlayContext = AppLocale.localizedContext(context, languageMode)
-        val params = defaultParams(width = WindowManager.LayoutParams.WRAP_CONTENT)
+        val params = defaultParams(
+            width = WindowManager.LayoutParams.WRAP_CONTENT,
+            x = config.compactPositionX,
+            y = config.compactPositionY,
+        )
         val overlay = CompactOverlay(
             context = overlayContext,
             windowManager = windowManager,
@@ -54,7 +58,14 @@ class OverlayController @Inject constructor(
         if (expandedOverlay == null) {
             val overlay = ExpandedOverlay(AppLocale.localizedContext(context, languageMode), profile, actions)
             expandedOverlay = overlay
-            windowManager.addView(overlay.view, defaultParams(width = 520))
+            windowManager.addView(
+                overlay.view,
+                defaultParams(
+                    width = 520,
+                    x = profile.overlayConfig.expandedPositionX,
+                    y = profile.overlayConfig.expandedPositionY,
+                ),
+            )
         } else {
             hideExpanded()
         }
@@ -83,7 +94,7 @@ class OverlayController @Inject constructor(
         runCatching { windowManager.removeView(view) }
     }
 
-    private fun defaultParams(width: Int): WindowManager.LayoutParams =
+    private fun defaultParams(width: Int, x: Int = 24, y: Int = 420): WindowManager.LayoutParams =
         WindowManager.LayoutParams(
             width,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -98,7 +109,7 @@ class OverlayController @Inject constructor(
             android.graphics.PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 24
-            y = 420
+            this.x = x
+            this.y = y
         }
 }
