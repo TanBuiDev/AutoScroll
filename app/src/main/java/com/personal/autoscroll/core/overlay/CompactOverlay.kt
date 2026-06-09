@@ -89,16 +89,17 @@ class CompactOverlay(
         }
         buttonsContainer.orientation = rootContainer.orientation
         buttonsContainer.visibility = if (isCollapsed) View.GONE else View.VISIBLE
+        handleView.setCollapsed(isCollapsed)
         rootContainer.setPadding(
-            rootContainer.context.dp(densitySize.panelPaddingHorizontal),
-            rootContainer.context.dp(densitySize.panelPaddingVertical),
-            rootContainer.context.dp(densitySize.panelPaddingHorizontal),
-            rootContainer.context.dp(densitySize.panelPaddingVertical),
+            rootContainer.context.dp(if (isCollapsed) 4 else densitySize.panelPaddingHorizontal),
+            rootContainer.context.dp(if (isCollapsed) 4 else densitySize.panelPaddingVertical),
+            rootContainer.context.dp(if (isCollapsed) 4 else densitySize.panelPaddingHorizontal),
+            rootContainer.context.dp(if (isCollapsed) 4 else densitySize.panelPaddingVertical),
         )
         rootContainer.background = roundedBackground(
-            fill = Color.argb((184 * overlayConfig.opacity).toInt(), 245, 247, 251),
-            stroke = Color.argb((128 * overlayConfig.opacity).toInt(), 216, 222, 232),
-            radius = rootContainer.context.dp(28).toFloat(),
+            fill = Color.argb(((if (isCollapsed) 218 else 184) * overlayConfig.opacity).toInt(), 245, 247, 251),
+            stroke = Color.argb(((if (isCollapsed) 148 else 128) * overlayConfig.opacity).toInt(), 216, 222, 232),
+            radius = rootContainer.context.dp(if (isCollapsed) 20 else 28).toFloat(),
         )
         rootContainer.alpha = 1f
         updateButtonSizes(densitySize)
@@ -285,7 +286,7 @@ class CompactOverlay(
                 OverlayIconType.Stop -> drawStop(canvas)
                 OverlayIconType.Next -> drawArrow(canvas, pointsUp = true)
                 OverlayIconType.Previous -> drawArrow(canvas, pointsUp = false)
-                OverlayIconType.Settings -> drawSettings(canvas)
+                OverlayIconType.Settings -> drawSliders(canvas)
             }
         }
 
@@ -318,15 +319,18 @@ class CompactOverlay(
             canvas.drawLine(width * 0.72f, headBackY, width * 0.50f, headY, paint)
         }
 
-        private fun drawSettings(canvas: Canvas) {
-            canvas.drawCircle(width * 0.40f, height * 0.58f, dp(7).toFloat(), fillPaint)
-            canvas.drawCircle(width * 0.40f, height * 0.58f, dp(3).toFloat(), Paint(fillPaint).apply {
-                color = Color.WHITE
-            })
-            canvas.drawCircle(width * 0.68f, height * 0.32f, dp(4).toFloat(), paint)
-            canvas.drawCircle(width * 0.72f, height * 0.66f, dp(4).toFloat(), paint)
-            canvas.drawLine(width * 0.18f, height * 0.58f, width * 0.62f, height * 0.58f, paint)
-            canvas.drawLine(width * 0.40f, height * 0.34f, width * 0.40f, height * 0.82f, paint)
+        private fun drawSliders(canvas: Canvas) {
+            val left = width * 0.22f
+            val right = width * 0.78f
+            val y1 = height * 0.30f
+            val y2 = height * 0.50f
+            val y3 = height * 0.70f
+            canvas.drawLine(left, y1, right, y1, paint)
+            canvas.drawLine(left, y2, right, y2, paint)
+            canvas.drawLine(left, y3, right, y3, paint)
+            canvas.drawCircle(width * 0.38f, y1, dp(3).toFloat(), fillPaint)
+            canvas.drawCircle(width * 0.64f, y2, dp(3).toFloat(), fillPaint)
+            canvas.drawCircle(width * 0.48f, y3, dp(3).toFloat(), fillPaint)
         }
 
         private fun dp(value: Int): Int =
@@ -334,8 +338,16 @@ class CompactOverlay(
     }
 
     private class DragHandleView(context: Context) : View(context) {
+        private var isCollapsed = false
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.rgb(160, 166, 176)
+        }
+        private val chevronPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(18, 23, 31)
+            strokeWidth = dp(2.5f)
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
         }
 
         init {
@@ -344,20 +356,58 @@ class CompactOverlay(
         }
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            setMeasuredDimension(dp(24), dp(24))
+            if (isCollapsed) {
+                setMeasuredDimension(dp(32), dp(32))
+            } else {
+                setMeasuredDimension(dp(24), dp(24))
+            }
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
+            if (isCollapsed) {
+                drawChevron(canvas, pointsDown = true)
+                return
+            }
+
             val radius = dp(2.0f)
-            val centerX = width / 2f
+            val centerX = width / 2f - dp(2.5f)
             val centerY = height / 2f
             val gapX = dp(4f)
-            val gapY = dp(8f)
+            val gapY = dp(7f)
             for (column in -1..1 step 2) {
                 for (row in -1..1) {
                     canvas.drawCircle(centerX + column * gapX / 2f, centerY + row * gapY / 2f, radius, paint)
                 }
+            }
+            drawChevron(canvas, pointsDown = false, centerOffsetX = dp(7f))
+        }
+
+        fun setCollapsed(collapsed: Boolean) {
+            if (isCollapsed == collapsed) return
+            isCollapsed = collapsed
+            animate()
+                .rotation(if (collapsed) 180f else 0f)
+                .setDuration(140L)
+                .withEndAction {
+                    rotation = 0f
+                    requestLayout()
+                    invalidate()
+                }
+                .start()
+        }
+
+        private fun drawChevron(canvas: Canvas, pointsDown: Boolean, centerOffsetX: Float = 0f) {
+            val centerX = width / 2f + centerOffsetX
+            val centerY = height / 2f
+            val halfWidth = dp(if (isCollapsed) 6f else 4f)
+            val halfHeight = dp(if (isCollapsed) 4f else 3f)
+            if (pointsDown) {
+                canvas.drawLine(centerX - halfWidth, centerY - halfHeight / 2f, centerX, centerY + halfHeight, chevronPaint)
+                canvas.drawLine(centerX + halfWidth, centerY - halfHeight / 2f, centerX, centerY + halfHeight, chevronPaint)
+            } else {
+                canvas.drawLine(centerX - halfWidth, centerY + halfHeight / 2f, centerX, centerY - halfHeight, chevronPaint)
+                canvas.drawLine(centerX + halfWidth, centerY + halfHeight / 2f, centerX, centerY - halfHeight, chevronPaint)
             }
         }
 
