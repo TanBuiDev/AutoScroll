@@ -5,4 +5,5 @@ data class OverlayActions(
     val onNext: () -> Unit,
     val onPrevious: () -> Unit,
     val onSettings: () -> Unit,
+    val onClose: () -> Unit,
 )

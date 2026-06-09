@@ -42,6 +42,7 @@ class OverlayAutomationCoordinator @Inject constructor(
                 onNext = { runManualGesture(scope, IntentDirection.NextItem) },
                 onPrevious = { runManualGesture(scope, IntentDirection.PreviousItem) },
                 onSettings = { toggleSettings(scope) },
+                onClose = { hideOverlay() },
             ),
         )
 

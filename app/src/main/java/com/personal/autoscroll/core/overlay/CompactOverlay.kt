@@ -62,6 +62,9 @@ class CompactOverlay(
             addOverlayItem(actionButton(context, OverlayIconType.Settings).apply {
                 setOnClickListener { actions.onSettings() }
             })
+            addOverlayItem(actionButton(context, OverlayIconType.Close).apply {
+                setOnClickListener { actions.onClose() }
+            })
         }
         addOverlayItem(buttonsContainer)
         applyConfig()
@@ -236,7 +239,8 @@ class CompactOverlay(
         Stop,
         Next,
         Previous,
-        Settings;
+        Settings,
+        Close;
 
         fun tint(): Int = when (this) {
             Play -> Color.rgb(37, 99, 235)
@@ -244,6 +248,7 @@ class CompactOverlay(
             Next -> Color.rgb(8, 145, 178)
             Previous -> Color.rgb(79, 70, 229)
             Settings -> Color.rgb(51, 65, 85)
+            Close -> Color.rgb(220, 38, 38)
         }
     }
 
@@ -318,6 +323,7 @@ class CompactOverlay(
                 OverlayIconType.Next -> drawDirectionalArrow(canvas, isNext = true)
                 OverlayIconType.Previous -> drawDirectionalArrow(canvas, isNext = false)
                 OverlayIconType.Settings -> drawSliders(canvas)
+                OverlayIconType.Close -> drawClose(canvas)
             }
         }
 
@@ -380,6 +386,11 @@ class CompactOverlay(
             canvas.drawCircle(width * 0.38f, y1, dp(3).toFloat(), fillPaint)
             canvas.drawCircle(width * 0.64f, y2, dp(3).toFloat(), fillPaint)
             canvas.drawCircle(width * 0.48f, y3, dp(3).toFloat(), fillPaint)
+        }
+
+        private fun drawClose(canvas: Canvas) {
+            canvas.drawLine(width * 0.30f, height * 0.30f, width * 0.70f, height * 0.70f, paint)
+            canvas.drawLine(width * 0.70f, height * 0.30f, width * 0.30f, height * 0.70f, paint)
         }
 
         private fun dp(value: Int): Int =

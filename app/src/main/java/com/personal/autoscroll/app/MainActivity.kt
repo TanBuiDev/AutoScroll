@@ -74,6 +74,11 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         currentAppViewModel.refreshPermissions()
     }
+
+    override fun onDestroy() {
+        viewModel.hideOverlay()
+        super.onDestroy()
+    }
 }
 
 @Composable
