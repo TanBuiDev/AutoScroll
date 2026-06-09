@@ -1,9 +1,7 @@
 package com.personal.autoscroll.ui.gesture
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -18,10 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -145,15 +144,19 @@ private fun GesturePreview(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
-    val progress by rememberInfiniteTransition(label = "gesture-preview").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = swipeDurationMillis.toInt().coerceIn(200, 2_000)),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "gesture-progress",
-    )
+    val progress = remember { Animatable(0f) }
+    val duration = swipeDurationMillis.toInt().coerceIn(200, 2_000)
+
+    LaunchedEffect(axis, direction, distancePercent, duration) {
+        while (true) {
+            progress.snapTo(0f)
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = duration, easing = LinearEasing),
+            )
+            kotlinx.coroutines.delay(450L)
+        }
+    }
 
     Canvas(modifier = modifier) {
         val phoneWidth = size.width * 0.42f
@@ -194,8 +197,8 @@ private fun GesturePreview(
             else -> center.copy(x = center.x + distance / 2f)
         }
         val hand = Offset(
-            x = start.x + (end.x - start.x) * progress,
-            y = start.y + (end.y - start.y) * progress,
+            x = start.x + (end.x - start.x) * progress.value,
+            y = start.y + (end.y - start.y) * progress.value,
         )
 
         drawLine(
