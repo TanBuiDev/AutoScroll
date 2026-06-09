@@ -365,22 +365,7 @@ class CompactOverlay(
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            if (isCollapsed) {
-                drawChevron(canvas, pointsDown = true)
-                return
-            }
-
-            val radius = dp(2.0f)
-            val centerX = width / 2f - dp(2.5f)
-            val centerY = height / 2f
-            val gapX = dp(4f)
-            val gapY = dp(7f)
-            for (column in -1..1 step 2) {
-                for (row in -1..1) {
-                    canvas.drawCircle(centerX + column * gapX / 2f, centerY + row * gapY / 2f, radius, paint)
-                }
-            }
-            drawChevron(canvas, pointsDown = false, centerOffsetX = dp(7f))
+            drawChevron(canvas, pointsDown = isCollapsed)
         }
 
         fun setCollapsed(collapsed: Boolean) {
@@ -397,8 +382,8 @@ class CompactOverlay(
                 .start()
         }
 
-        private fun drawChevron(canvas: Canvas, pointsDown: Boolean, centerOffsetX: Float = 0f) {
-            val centerX = width / 2f + centerOffsetX
+        private fun drawChevron(canvas: Canvas, pointsDown: Boolean) {
+            val centerX = width / 2f
             val centerY = height / 2f
             val halfWidth = dp(if (isCollapsed) 6f else 4f)
             val halfHeight = dp(if (isCollapsed) 4f else 3f)
