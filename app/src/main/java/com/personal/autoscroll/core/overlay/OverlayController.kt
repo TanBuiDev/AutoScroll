@@ -61,9 +61,11 @@ class OverlayController @Inject constructor(
             windowManager.addView(
                 overlay.view,
                 defaultParams(
-                    width = 520,
-                    x = profile.overlayConfig.expandedPositionX,
-                    y = profile.overlayConfig.expandedPositionY,
+                    width = modalWidth(),
+                    x = 0,
+                    y = 0,
+                    gravity = Gravity.CENTER,
+                    dimAmount = 0.16f,
                 ),
             )
         } else {
@@ -94,7 +96,13 @@ class OverlayController @Inject constructor(
         runCatching { windowManager.removeView(view) }
     }
 
-    private fun defaultParams(width: Int, x: Int = 24, y: Int = 420): WindowManager.LayoutParams =
+    private fun defaultParams(
+        width: Int,
+        x: Int = 24,
+        y: Int = 420,
+        gravity: Int = Gravity.TOP or Gravity.START,
+        dimAmount: Float = 0f,
+    ): WindowManager.LayoutParams =
         WindowManager.LayoutParams(
             width,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -105,11 +113,21 @@ class OverlayController @Inject constructor(
                 WindowManager.LayoutParams.TYPE_PHONE
             },
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                if (dimAmount > 0f) WindowManager.LayoutParams.FLAG_DIM_BEHIND else 0,
             android.graphics.PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
+            this.gravity = gravity
             this.x = x
             this.y = y
+            this.dimAmount = dimAmount
         }
+
+    private fun modalWidth(): Int {
+        val metrics = context.resources.displayMetrics
+        return (metrics.widthPixels - context.dp(48)).coerceAtMost(context.dp(420))
+    }
+
+    private fun Context.dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
 }

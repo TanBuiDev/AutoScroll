@@ -28,7 +28,6 @@ class CompactOverlay(
     private val startStopButton = actionButton(
         context = context,
         iconType = OverlayIconType.Play,
-        isPrimary = true,
     )
     private val handleView = DragHandleView(context)
     private val buttonsContainer = LinearLayout(context)
@@ -68,9 +67,9 @@ class CompactOverlay(
         this.isRunning = isRunning
         startStopButton.setIconType(if (isRunning) OverlayIconType.Stop else OverlayIconType.Play)
         startStopButton.background = if (isRunning) {
-            actionButtonBackground(startStopButton.context, isPrimary = true, isDanger = true)
+            actionButtonBackground(startStopButton.context, OverlayIconType.Stop)
         } else {
-            actionButtonBackground(startStopButton.context, isPrimary = true)
+            actionButtonBackground(startStopButton.context, OverlayIconType.Play)
         }
     }
 
@@ -151,29 +150,19 @@ class CompactOverlay(
     private fun actionButton(
         context: Context,
         iconType: OverlayIconType,
-        isPrimary: Boolean = false,
     ): OverlayActionButton = OverlayActionButton(context, iconType).apply {
         isClickable = true
         isFocusable = true
-        background = actionButtonBackground(context, isPrimary)
+        background = actionButtonBackground(context, iconType)
     }
 
     private fun actionButtonBackground(
         context: Context,
-        isPrimary: Boolean,
-        isDanger: Boolean = false,
+        iconType: OverlayIconType,
     ): GradientDrawable =
         roundedBackground(
-            fill = when {
-                isDanger -> Color.rgb(218, 64, 72)
-                isPrimary -> Color.argb(26, 255, 255, 255)
-                else -> Color.argb(26, 255, 255, 255)
-            },
-            stroke = when {
-                isDanger -> Color.rgb(247, 139, 145)
-                isPrimary -> Color.argb(170, 197, 215, 255)
-                else -> Color.argb(150, 227, 232, 240)
-            },
+            fill = iconType.tint().softFill(),
+            stroke = iconType.tint().softStroke(),
             radius = context.dp(999).toFloat(),
         )
 
@@ -236,8 +225,22 @@ class CompactOverlay(
         Stop,
         Next,
         Previous,
-        Settings,
+        Settings;
+
+        fun tint(): Int = when (this) {
+            Play -> Color.rgb(37, 99, 235)
+            Stop -> Color.rgb(220, 38, 38)
+            Next -> Color.rgb(8, 145, 178)
+            Previous -> Color.rgb(79, 70, 229)
+            Settings -> Color.rgb(51, 65, 85)
+        }
     }
+
+    private fun Int.softFill(): Int =
+        Color.argb(24, Color.red(this), Color.green(this), Color.blue(this))
+
+    private fun Int.softStroke(): Int =
+        Color.argb(92, Color.red(this), Color.green(this), Color.blue(this))
 
     private class OverlayActionButton(
         context: Context,
@@ -264,19 +267,27 @@ class CompactOverlay(
         var iconType: OverlayIconType = iconType
             set(value) {
                 field = value
+                applyTint()
                 invalidate()
             }
 
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.rgb(18, 23, 31)
             strokeWidth = dp(3).toFloat()
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.ROUND
             strokeJoin = Paint.Join.ROUND
         }
         private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.rgb(18, 23, 31)
             style = Paint.Style.FILL
+        }
+
+        init {
+            applyTint()
+        }
+
+        private fun applyTint() {
+            paint.color = iconType.tint()
+            fillPaint.color = iconType.tint()
         }
 
         override fun onDraw(canvas: Canvas) {

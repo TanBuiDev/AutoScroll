@@ -2,9 +2,9 @@ package com.personal.autoscroll.core.overlay
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.personal.autoscroll.R
@@ -35,12 +35,15 @@ class ExpandedOverlay(
 ) {
     private val modeRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
     }
     private val directionRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
     }
     private val overlayOrientationRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
     }
     private val conditionalRow = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -49,89 +52,124 @@ class ExpandedOverlay(
     val view: View = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.START
-        setPadding(20, 16, 20, 16)
-        setBackgroundColor(Color.argb(240, 15, 17, 21))
+        elevation = dp(18).toFloat()
+        setPadding(dp(18), dp(18), dp(18), dp(16))
+        background = roundedBackground(
+            fill = Color.argb(238, 248, 250, 252),
+            stroke = Color.argb(170, 215, 222, 232),
+            radius = dp(26).toFloat(),
+        )
 
-        addView(label(context, profile.appName, size = 16f, color = Color.WHITE))
-        addView(label(context, profile.packageName, size = 12f, color = Color.rgb(168, 172, 179)))
+        addView(label(context, context.getString(R.string.overlay_config), size = 18f, color = Palette.TextPrimary).apply {
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        })
+        addView(label(context, profile.appName, size = 12f, color = Palette.TextMuted).apply {
+            setPadding(0, dp(2), 0, dp(10))
+        })
 
-        addView(sectionLabel(context, context.getString(R.string.setting_mode)))
-        addView(modeRow)
-
-        addView(sectionLabel(context, context.getString(R.string.setting_direction)))
-        addView(directionRow)
-
-        addView(stepperRow(
+        addSection(
             context = context,
-            label = context.getString(R.string.setting_delay),
-            valueText = { "${profile.timingConfig.delayMillis / 1000.0}s" },
-            onMinus = {
-                updateProfile {
-                    copy(timingConfig = timingConfig.copy(delayMillis = (timingConfig.delayMillis - 500L).coerceAtLeast(500L)))
-                }
-                actions.onDelayChanged(profile.timingConfig.delayMillis)
-            },
-            onPlus = {
-                updateProfile {
-                    copy(timingConfig = timingConfig.copy(delayMillis = (timingConfig.delayMillis + 500L).coerceAtMost(60_000L)))
-                }
-                actions.onDelayChanged(profile.timingConfig.delayMillis)
-            },
-        ))
-
-        addView(stepperRow(
+            title = context.getString(R.string.setting_mode),
+            accent = Palette.Blue,
+            content = modeRow,
+        )
+        addSection(
             context = context,
-            label = context.getString(R.string.setting_swipe),
-            valueText = { profile.gestureConfig.swipeDurationMillis.asSecondsText() },
-            onMinus = {
-                updateProfile {
-                    copy(
-                        gestureConfig = gestureConfig.copy(
-                            swipeDurationMillis = (gestureConfig.swipeDurationMillis - 100L)
-                                .coerceAtLeast(MIN_SWIPE_DURATION_MILLIS),
-                        ),
-                    )
-                }
-                actions.onSwipeDurationChanged(profile.gestureConfig.swipeDurationMillis)
-            },
-            onPlus = {
-                updateProfile {
-                    copy(
-                        gestureConfig = gestureConfig.copy(
-                            swipeDurationMillis = (gestureConfig.swipeDurationMillis + 100L)
-                                .coerceAtMost(MAX_SWIPE_DURATION_MILLIS),
-                        ),
-                    )
-                }
-                actions.onSwipeDurationChanged(profile.gestureConfig.swipeDurationMillis)
-            },
-        ))
-
-        addView(sectionLabel(context, context.getString(R.string.setting_overlay)))
-        addView(overlayOrientationRow)
-        addView(stepperRow(
+            title = context.getString(R.string.setting_direction),
+            accent = Palette.Indigo,
+            content = directionRow,
+        )
+        addSection(
             context = context,
-            label = context.getString(R.string.setting_opacity),
-            valueText = { "${(profile.overlayConfig.opacity * 100).toInt()}%" },
-            onMinus = {
-                val next = (profile.overlayConfig.opacity - 0.1f).coerceAtLeast(0.3f)
-                updateProfile { copy(overlayConfig = overlayConfig.copy(opacity = next)) }
-                actions.onOpacityChanged(profile.overlayConfig.opacity)
+            title = context.getString(R.string.label_timing),
+            accent = Palette.Amber,
+            content = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(stepperRow(
+                    context = context,
+                    label = context.getString(R.string.setting_delay),
+                    valueText = { profile.timingConfig.delayMillis.asSecondsText() },
+                    accent = Palette.Amber,
+                    onMinus = {
+                        updateProfile {
+                            copy(timingConfig = timingConfig.copy(delayMillis = (timingConfig.delayMillis - 500L).coerceAtLeast(500L)))
+                        }
+                        actions.onDelayChanged(profile.timingConfig.delayMillis)
+                    },
+                    onPlus = {
+                        updateProfile {
+                            copy(timingConfig = timingConfig.copy(delayMillis = (timingConfig.delayMillis + 500L).coerceAtMost(60_000L)))
+                        }
+                        actions.onDelayChanged(profile.timingConfig.delayMillis)
+                    },
+                ))
+                addView(stepperRow(
+                    context = context,
+                    label = context.getString(R.string.setting_swipe),
+                    valueText = { profile.gestureConfig.swipeDurationMillis.asSecondsText() },
+                    accent = Palette.Amber,
+                    onMinus = {
+                        updateProfile {
+                            copy(
+                                gestureConfig = gestureConfig.copy(
+                                    swipeDurationMillis = (gestureConfig.swipeDurationMillis - 100L)
+                                        .coerceAtLeast(MIN_SWIPE_DURATION_MILLIS),
+                                ),
+                            )
+                        }
+                        actions.onSwipeDurationChanged(profile.gestureConfig.swipeDurationMillis)
+                    },
+                    onPlus = {
+                        updateProfile {
+                            copy(
+                                gestureConfig = gestureConfig.copy(
+                                    swipeDurationMillis = (gestureConfig.swipeDurationMillis + 100L)
+                                        .coerceAtMost(MAX_SWIPE_DURATION_MILLIS),
+                                ),
+                            )
+                        }
+                        actions.onSwipeDurationChanged(profile.gestureConfig.swipeDurationMillis)
+                    },
+                ))
+                addView(conditionalRow)
             },
-            onPlus = {
-                val next = (profile.overlayConfig.opacity + 0.1f).coerceAtMost(1.0f)
-                updateProfile { copy(overlayConfig = overlayConfig.copy(opacity = next)) }
-                actions.onOpacityChanged(profile.overlayConfig.opacity)
+        )
+        addSection(
+            context = context,
+            title = context.getString(R.string.setting_overlay),
+            accent = Palette.Teal,
+            content = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(overlayOrientationRow)
+                addView(stepperRow(
+                    context = context,
+                    label = context.getString(R.string.setting_opacity),
+                    valueText = { "${(profile.overlayConfig.opacity * 100).toInt()}%" },
+                    accent = Palette.Teal,
+                    onMinus = {
+                        val next = (profile.overlayConfig.opacity - 0.1f).coerceAtLeast(0.3f)
+                        updateProfile { copy(overlayConfig = overlayConfig.copy(opacity = next)) }
+                        actions.onOpacityChanged(profile.overlayConfig.opacity)
+                    },
+                    onPlus = {
+                        val next = (profile.overlayConfig.opacity + 0.1f).coerceAtMost(1.0f)
+                        updateProfile { copy(overlayConfig = overlayConfig.copy(opacity = next)) }
+                        actions.onOpacityChanged(profile.overlayConfig.opacity)
+                    },
+                ))
             },
-        ))
-
-        addView(conditionalRow)
+        )
 
         addView(LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.END
-            addView(actionButton(context, context.getString(R.string.action_test)) { actions.onTest() })
-            addView(actionButton(context, context.getString(R.string.action_save)) { actions.onSave() })
+            setPadding(0, dp(12), 0, 0)
+            addView(commandButton(context, context.getString(R.string.action_test), Palette.Indigo, filled = false) {
+                actions.onTest()
+            })
+            addView(commandButton(context, context.getString(R.string.action_save), Palette.Blue, filled = true) {
+                actions.onSave()
+            })
         })
     }
 
@@ -155,15 +193,45 @@ class ExpandedOverlay(
         rebuildConditionalRow()
     }
 
+    private fun LinearLayout.addSection(
+        context: Context,
+        title: String,
+        accent: Int,
+        content: View,
+    ) {
+        addView(LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = roundedBackground(
+                fill = Color.argb(88, 255, 255, 255),
+                stroke = accent.withAlpha(48),
+                radius = dp(18).toFloat(),
+            )
+            addView(label(context, title, size = 12f, color = accent).apply {
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                setPadding(0, 0, 0, dp(8))
+            })
+            addView(content)
+        }, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply {
+            topMargin = dp(8)
+        })
+    }
+
     private fun rebuildModeRow() {
         modeRow.removeAllViews()
         ScrollMode.entries.forEach { mode ->
-            modeRow.addView(actionButton(modeRow.context, mode.label()) {
+            modeRow.addView(choiceButton(
+                context = modeRow.context,
+                label = mode.label(),
+                accent = Palette.Blue,
+                selected = mode == profile.timingConfig.mode,
+            ) {
                 updateProfile { copy(timingConfig = timingConfig.copy(mode = mode)) }
                 actions.onModeChanged(mode)
                 rebuildModeRow()
-            }.apply {
-                setTextColor(if (mode == profile.timingConfig.mode) Color.WHITE else Color.rgb(168, 172, 179))
             })
         }
     }
@@ -171,12 +239,15 @@ class ExpandedOverlay(
     private fun rebuildDirectionRow() {
         directionRow.removeAllViews()
         IntentDirection.entries.forEach { direction ->
-            directionRow.addView(actionButton(directionRow.context, direction.label()) {
+            directionRow.addView(choiceButton(
+                context = directionRow.context,
+                label = direction.label(),
+                accent = Palette.Indigo,
+                selected = direction == profile.gestureConfig.intentDirection,
+            ) {
                 updateProfile { copy(gestureConfig = gestureConfig.copy(intentDirection = direction)) }
                 actions.onDirectionChanged(direction)
                 rebuildDirectionRow()
-            }.apply {
-                setTextColor(if (direction == profile.gestureConfig.intentDirection) Color.WHITE else Color.rgb(168, 172, 179))
             })
         }
     }
@@ -184,18 +255,15 @@ class ExpandedOverlay(
     private fun rebuildOverlayOrientationRow() {
         overlayOrientationRow.removeAllViews()
         OverlayOrientation.entries.forEach { orientation ->
-            overlayOrientationRow.addView(actionButton(overlayOrientationRow.context, orientation.label()) {
+            overlayOrientationRow.addView(choiceButton(
+                context = overlayOrientationRow.context,
+                label = orientation.label(),
+                accent = Palette.Teal,
+                selected = orientation == profile.overlayConfig.orientation,
+            ) {
                 updateProfile { copy(overlayConfig = overlayConfig.copy(orientation = orientation)) }
                 actions.onOverlayOrientationChanged(orientation)
                 rebuildOverlayOrientationRow()
-            }.apply {
-                setTextColor(
-                    if (orientation == profile.overlayConfig.orientation) {
-                        Color.WHITE
-                    } else {
-                        Color.rgb(168, 172, 179)
-                    },
-                )
             })
         }
     }
@@ -207,6 +275,7 @@ class ExpandedOverlay(
                 context = conditionalRow.context,
                 label = conditionalRow.context.getString(R.string.label_repeat_count),
                 valueText = { (profile.timingConfig.repeatCount ?: 1).toString() },
+                accent = Palette.Amber,
                 onMinus = {
                     val next = ((profile.timingConfig.repeatCount ?: 1) - 1).coerceAtLeast(1)
                     updateProfile { copy(timingConfig = timingConfig.copy(repeatCount = next)) }
@@ -221,7 +290,8 @@ class ExpandedOverlay(
             ScrollMode.Timer -> conditionalRow.addView(stepperRow(
                 context = conditionalRow.context,
                 label = conditionalRow.context.getString(R.string.label_duration),
-                valueText = { "${(profile.timingConfig.durationMillis ?: 60_000L) / 1000}s" },
+                valueText = { (profile.timingConfig.durationMillis ?: 60_000L).asSecondsText() },
+                accent = Palette.Amber,
                 onMinus = {
                     val next = ((profile.timingConfig.durationMillis ?: 60_000L) - 10_000L).coerceAtLeast(10_000L)
                     updateProfile { copy(timingConfig = timingConfig.copy(durationMillis = next)) }
@@ -238,22 +308,19 @@ class ExpandedOverlay(
         }
     }
 
-    private fun sectionLabel(context: Context, text: String): TextView =
-        label(context, text, size = 12f, color = Color.rgb(168, 172, 179)).apply {
-            setPadding(0, 14, 0, 4)
-        }
-
     private fun label(context: Context, text: String, size: Float, color: Int): TextView =
         TextView(context).apply {
             this.text = text
             setTextColor(color)
             textSize = size
+            includeFontPadding = true
         }
 
     private fun stepperRow(
         context: Context,
         label: String,
         valueText: () -> String,
+        accent: Int,
         onMinus: () -> Unit,
         onPlus: () -> Unit,
     ): LinearLayout {
@@ -261,34 +328,117 @@ class ExpandedOverlay(
         return LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 8, 0, 0)
-            addView(label(context, label, size = 13f, color = Color.WHITE))
-            addView(actionButton(context, "-") {
+            setPadding(0, dp(5), 0, dp(5))
+            addView(label(context, label, size = 13f, color = Palette.TextPrimary), LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f,
+            ))
+            addView(iconTextButton(context, "-", accent) {
                 onMinus()
                 value.text = valueText()
             })
-            value = label(context, valueText(), size = 13f, color = Color.rgb(220, 224, 230))
-            addView(value)
-            addView(actionButton(context, "+") {
+            value = label(context, valueText(), size = 14f, color = Palette.TextPrimary).apply {
+                gravity = Gravity.CENTER
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+            }
+            addView(value, LinearLayout.LayoutParams(dp(72), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(iconTextButton(context, "+", accent) {
                 onPlus()
                 value.text = valueText()
             })
         }
     }
 
-    private fun actionButton(context: Context, label: String, onClick: () -> Unit): Button =
-        Button(context).apply {
-            text = label
-            maxLines = 2
-            minWidth = 0
-            minimumWidth = 0
-            minHeight = 0
-            minimumHeight = 0
-            setPadding(14, 4, 14, 4)
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.TRANSPARENT)
-            setOnClickListener { onClick() }
+    private fun choiceButton(
+        context: Context,
+        label: String,
+        accent: Int,
+        selected: Boolean,
+        onClick: () -> Unit,
+    ): TextView = TextView(context).apply {
+        text = label
+        maxLines = 1
+        gravity = Gravity.CENTER
+        textSize = 12f
+        setTextColor(if (selected) Color.WHITE else accent)
+        setPadding(dp(10), dp(7), dp(10), dp(7))
+        background = roundedBackground(
+            fill = if (selected) accent else accent.withAlpha(18),
+            stroke = accent.withAlpha(if (selected) 0 else 70),
+            radius = dp(999).toFloat(),
+        )
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { onClick() }
+        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            marginEnd = dp(6)
         }
+    }
+
+    private fun iconTextButton(context: Context, label: String, accent: Int, onClick: () -> Unit): TextView =
+        TextView(context).apply {
+            text = label
+            gravity = Gravity.CENTER
+            textSize = 17f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            setTextColor(accent)
+            background = roundedBackground(
+                fill = accent.withAlpha(20),
+                stroke = accent.withAlpha(54),
+                radius = dp(999).toFloat(),
+            )
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+            layoutParams = LinearLayout.LayoutParams(dp(32), dp(32)).apply {
+                marginStart = dp(4)
+                marginEnd = dp(4)
+            }
+        }
+
+    private fun commandButton(
+        context: Context,
+        label: String,
+        accent: Int,
+        filled: Boolean,
+        onClick: () -> Unit,
+    ): TextView = TextView(context).apply {
+        text = label
+        gravity = Gravity.CENTER
+        textSize = 14f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+        setTextColor(if (filled) Color.WHITE else accent)
+        setPadding(dp(16), dp(9), dp(16), dp(9))
+        background = roundedBackground(
+            fill = if (filled) accent else accent.withAlpha(18),
+            stroke = accent.withAlpha(if (filled) 0 else 72),
+            radius = dp(999).toFloat(),
+        )
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { onClick() }
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            marginStart = dp(8)
+        }
+    }
+
+    private fun roundedBackground(fill: Int, stroke: Int, radius: Float): GradientDrawable =
+        GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(fill)
+            setStroke(1, stroke)
+            cornerRadius = radius
+        }
+
+    private fun Int.withAlpha(alpha: Int): Int =
+        Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
+
+    private fun Context.dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
+
+    private fun View.dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
 
     private fun ScrollMode.label(): String = when (this) {
         ScrollMode.Once -> modeRow.context.getString(R.string.mode_once)
@@ -309,4 +459,13 @@ class ExpandedOverlay(
 
     private fun Long.asSecondsText(): String =
         "${this / 1000}.${(this % 1000) / 100}s"
+
+    private object Palette {
+        val TextPrimary: Int = Color.rgb(17, 24, 39)
+        val TextMuted: Int = Color.rgb(107, 114, 128)
+        val Blue: Int = Color.rgb(37, 99, 235)
+        val Indigo: Int = Color.rgb(79, 70, 229)
+        val Teal: Int = Color.rgb(15, 118, 110)
+        val Amber: Int = Color.rgb(217, 119, 6)
+    }
 }
