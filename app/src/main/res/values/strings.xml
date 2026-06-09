@@ -47,6 +47,7 @@
     <string name="action_overlay_permission">Overlay permission</string>
     <string name="action_test">Test</string>
     <string name="action_save">Save</string>
+    <string name="action_preview">Preview</string>
     <string name="action_show_overlay">Show overlay</string>
     <string name="action_hide_overlay">Hide overlay</string>
     <string name="profiles_empty">No saved profiles yet. Open Current App, show the overlay, then save a profile.</string>
@@ -96,4 +97,9 @@
     <string name="message_test_completed">Test gesture completed</string>
     <string name="message_test_failed">Test gesture could not run</string>
     <string name="message_profile_saved">Profile saved for %1$s</string>
+    <string name="preview_clipped">Distance is limited by the screen edge</string>
+    <string name="preview_swipe_up">Swipe up for next item</string>
+    <string name="preview_swipe_down">Swipe down for previous item</string>
+    <string name="preview_swipe_left">Swipe left for next item</string>
+    <string name="preview_swipe_right">Swipe right for previous item</string>
 </resources>

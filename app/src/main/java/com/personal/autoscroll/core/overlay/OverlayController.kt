@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import com.personal.autoscroll.core.localization.AppLocale
+import com.personal.autoscroll.core.gesture.GesturePlan
 import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.OverlayConfig
@@ -19,6 +20,7 @@ class OverlayController @Inject constructor(
     private val windowManager = context.getSystemService(WindowManager::class.java)
     private var compactOverlay: CompactOverlay? = null
     private var expandedOverlay: ExpandedOverlay? = null
+    private var gesturePreviewOverlay: GesturePreviewOverlay? = null
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
@@ -83,12 +85,36 @@ class OverlayController @Inject constructor(
         expandedOverlay?.update(profile)
     }
 
+    fun showGesturePreview(plan: GesturePlan, languageMode: LanguageMode) {
+        if (!canDrawOverlays()) return
+        hideGesturePreview()
+        hideExpanded()
+
+        val preview = GesturePreviewOverlay(
+            context = AppLocale.localizedContext(context, languageMode),
+            gesturePlan = plan,
+            onDismiss = { hideGesturePreview() },
+        )
+        gesturePreviewOverlay = preview
+        windowManager.addView(
+            preview.view,
+            defaultParams(
+                width = WindowManager.LayoutParams.MATCH_PARENT,
+                height = WindowManager.LayoutParams.MATCH_PARENT,
+                x = 0,
+                y = 0,
+                gravity = Gravity.TOP or Gravity.START,
+            ),
+        )
+    }
+
     fun collapseExpanded() {
         hideExpanded()
     }
 
     fun hideAll() {
         hideExpanded()
+        hideGesturePreview()
         compactOverlay?.let { removeViewSafely(it.view) }
         compactOverlay = null
     }
@@ -98,12 +124,18 @@ class OverlayController @Inject constructor(
         expandedOverlay = null
     }
 
+    private fun hideGesturePreview() {
+        gesturePreviewOverlay?.let { removeViewSafely(it.view) }
+        gesturePreviewOverlay = null
+    }
+
     private fun removeViewSafely(view: View) {
         runCatching { windowManager.removeView(view) }
     }
 
     private fun defaultParams(
         width: Int,
+        height: Int = WindowManager.LayoutParams.WRAP_CONTENT,
         x: Int = 24,
         y: Int = 420,
         gravity: Int = Gravity.TOP or Gravity.START,
@@ -111,7 +143,7 @@ class OverlayController @Inject constructor(
     ): WindowManager.LayoutParams =
         WindowManager.LayoutParams(
             width,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            height,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             } else {

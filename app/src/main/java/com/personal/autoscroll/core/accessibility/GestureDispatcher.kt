@@ -4,7 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
 import com.personal.autoscroll.core.gesture.GesturePlan
-import com.personal.autoscroll.core.gesture.PhysicalSwipeDirection
+import com.personal.autoscroll.core.gesture.toGesturePath
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -32,30 +32,11 @@ class GestureDispatcher(
         val displayMetrics = service.resources.displayMetrics
         val width = displayMetrics.widthPixels.toFloat()
         val height = displayMetrics.heightPixels.toFloat()
-        val startX = width * startXPercent / 100f
-        val startY = height * startYPercent / 100f
-        val distance = when (physicalDirection) {
-            PhysicalSwipeDirection.Up,
-            PhysicalSwipeDirection.Down -> height * distancePercent / 100f
-            PhysicalSwipeDirection.Left,
-            PhysicalSwipeDirection.Right -> width * distancePercent / 100f
-        }
-
-        val endX = when (physicalDirection) {
-            PhysicalSwipeDirection.Left -> startX - distance
-            PhysicalSwipeDirection.Right -> startX + distance
-            else -> startX
-        }.coerceIn(0f, width)
-
-        val endY = when (physicalDirection) {
-            PhysicalSwipeDirection.Up -> startY - distance
-            PhysicalSwipeDirection.Down -> startY + distance
-            else -> startY
-        }.coerceIn(0f, height)
+        val gesturePath = toGesturePath(width, height)
 
         val path = Path().apply {
-            moveTo(startX.coerceIn(0f, width), startY.coerceIn(0f, height))
-            lineTo(endX, endY)
+            moveTo(gesturePath.startX, gesturePath.startY)
+            lineTo(gesturePath.endX, gesturePath.endY)
         }
 
         return GestureDescription.Builder()

@@ -24,6 +24,7 @@ data class ExpandedOverlayActions(
     val onOpacityChanged: (Float) -> Unit,
     val onRepeatCountChanged: (Int) -> Unit,
     val onDurationChanged: (Long) -> Unit,
+    val onPreview: () -> Unit,
     val onSave: () -> Unit,
 )
 
@@ -163,6 +164,9 @@ class ExpandedOverlay(
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.END
             setPadding(0, dp(12), 0, 0)
+            addView(commandButton(context, context.getString(R.string.action_preview), Palette.Indigo, filled = false) {
+                actions.onPreview()
+            })
             addView(commandButton(context, context.getString(R.string.action_save), Palette.Blue, filled = true) {
                 actions.onSave()
             })

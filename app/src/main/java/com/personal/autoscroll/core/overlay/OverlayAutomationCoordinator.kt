@@ -166,6 +166,12 @@ class OverlayAutomationCoordinator @Inject constructor(
                 onDurationChanged = { duration ->
                     updateProfile { copy(timingConfig = timingConfig.copy(durationMillis = duration)) }
                 },
+                onPreview = {
+                    overlayController.showGesturePreview(
+                        plan = gestureMapper.map(profile.gestureConfig),
+                        languageMode = languageMode,
+                    )
+                },
                 onSave = {
                     overlayController.updateExpanded(profile)
                     overlayController.collapseExpanded()
