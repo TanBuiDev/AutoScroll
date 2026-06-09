@@ -29,6 +29,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.annotation.StringRes
 import com.personal.autoscroll.R
+import com.personal.autoscroll.domain.model.GestureAxis
+import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.ui.advanced.AdvancedScreen
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
 import com.personal.autoscroll.ui.currentapp.CurrentAppScreen
@@ -56,6 +58,10 @@ fun AppNavigation(
     currentAppViewModel: CurrentAppViewModel,
     advancedViewModel: AdvancedViewModel,
     overlaySettingsViewModel: OverlaySettingsViewModel,
+    onGestureAxisChanged: (GestureAxis) -> Unit,
+    onIntentDirectionChanged: (IntentDirection) -> Unit,
+    onGestureDistanceChanged: (Int) -> Unit,
+    onSwipeDurationChanged: (Long) -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
 ) {
@@ -122,7 +128,12 @@ fun AppNavigation(
                             onHideOverlay = onHideOverlay,
                         )
                         AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
-                        AppDestination.Automation -> AutomationScreen()
+                        AppDestination.Automation -> AutomationScreen(
+                            onGestureAxisChanged = onGestureAxisChanged,
+                            onIntentDirectionChanged = onIntentDirectionChanged,
+                            onGestureDistanceChanged = onGestureDistanceChanged,
+                            onSwipeDurationChanged = onSwipeDurationChanged,
+                        )
                         AppDestination.Overlay -> OverlayScreen(
                             overlaySettingsViewModel = overlaySettingsViewModel,
                             advancedViewModel = advancedViewModel,
@@ -135,14 +146,25 @@ fun AppNavigation(
 }
 
 @Composable
-private fun AutomationScreen() {
+private fun AutomationScreen(
+    onGestureAxisChanged: (GestureAxis) -> Unit,
+    onIntentDirectionChanged: (IntentDirection) -> Unit,
+    onGestureDistanceChanged: (Int) -> Unit,
+    onSwipeDurationChanged: (Long) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
             text = stringResource(R.string.nav_automation),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
-        GestureScreen(showTitle = true)
+        GestureScreen(
+            showTitle = true,
+            onGestureAxisChanged = onGestureAxisChanged,
+            onIntentDirectionChanged = onIntentDirectionChanged,
+            onGestureDistanceChanged = onGestureDistanceChanged,
+            onSwipeDurationChanged = onSwipeDurationChanged,
+        )
         TimingScreen(showTitle = true)
     }
 }

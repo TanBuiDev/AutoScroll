@@ -71,6 +71,8 @@
     <string name="direction_next_item">Next item</string>
     <string name="direction_previous_item">Previous item</string>
     <string name="gesture_physical_mapping">Physical mapping</string>
+    <string name="gesture_navigation_target">Content navigation</string>
+    <string name="gesture_preview">Gesture preview</string>
     <string name="gesture_distance">Distance: %1$d%%</string>
     <string name="gesture_swipe_time">Swipe time: %1$s</string>
     <string name="overlay_show_next_previous">Show Next/Previous</string>
@@ -90,6 +92,7 @@
     <string name="language_vietnamese">Vietnamese</string>
     <string name="profile_summary">%1$s • %2$s • %3$s • %4$s</string>
     <string name="minutes_short">%1$d min</string>
+    <string name="minutes_unit">min</string>
     <string name="message_test_completed">Test gesture completed</string>
     <string name="message_test_failed">Test gesture could not run</string>
     <string name="message_profile_saved">Profile saved for %1$s</string>

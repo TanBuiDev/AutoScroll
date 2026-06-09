@@ -71,6 +71,8 @@
     <string name="direction_next_item">Mục tiếp theo</string>
     <string name="direction_previous_item">Mục trước</string>
     <string name="gesture_physical_mapping">Ánh xạ vật lý</string>
+    <string name="gesture_navigation_target">Điều hướng nội dung</string>
+    <string name="gesture_preview">Mô phỏng cử chỉ</string>
     <string name="gesture_distance">Khoảng cách: %1$d%%</string>
     <string name="gesture_swipe_time">Thời gian vuốt: %1$s</string>
     <string name="overlay_show_next_previous">Hiện Tiếp/Lùi</string>
@@ -90,6 +92,7 @@
     <string name="language_vietnamese">Tiếng Việt</string>
     <string name="profile_summary">%1$s • %2$s • %3$s • %4$s</string>
     <string name="minutes_short">%1$d phút</string>
+    <string name="minutes_unit">phút</string>
     <string name="message_test_completed">Đã thử cử chỉ</string>
     <string name="message_test_failed">Không thể chạy thử cử chỉ</string>
     <string name="message_profile_saved">Đã lưu hồ sơ cho %1$s</string>

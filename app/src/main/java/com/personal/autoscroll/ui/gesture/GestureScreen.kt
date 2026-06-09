@@ -1,10 +1,18 @@
 package com.personal.autoscroll.ui.gesture
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -16,6 +24,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.personal.autoscroll.R
@@ -24,7 +37,13 @@ import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun GestureScreen(showTitle: Boolean = true) {
+fun GestureScreen(
+    showTitle: Boolean = true,
+    onGestureAxisChanged: (GestureAxis) -> Unit = {},
+    onIntentDirectionChanged: (IntentDirection) -> Unit = {},
+    onGestureDistanceChanged: (Int) -> Unit = {},
+    onSwipeDurationChanged: (Long) -> Unit = {},
+) {
     var direction by remember { mutableStateOf(IntentDirection.NextItem) }
     var axis by remember { mutableStateOf(GestureAxis.Vertical) }
     var distance by remember { mutableFloatStateOf(55f) }
@@ -34,12 +53,15 @@ fun GestureScreen(showTitle: Boolean = true) {
         if (showTitle) {
             ScreenTitle(stringResource(R.string.nav_gesture))
         }
-        Text(stringResource(R.string.setting_direction), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.gesture_navigation_target), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IntentDirection.entries.forEach {
                 FilterChip(
                     selected = it == direction,
-                    onClick = { direction = it },
+                    onClick = {
+                        direction = it
+                        onIntentDirectionChanged(it)
+                    },
                     label = {
                         Text(
                             if (it == IntentDirection.NextItem) {
@@ -59,21 +81,134 @@ fun GestureScreen(showTitle: Boolean = true) {
             GestureAxis.entries.forEach {
                 FilterChip(
                     selected = it == axis,
-                    onClick = { axis = it },
-                    label = { Text(it.toString()) },
+                    onClick = {
+                        axis = it
+                        onGestureAxisChanged(it)
+                    },
+                    label = {
+                        Text(
+                            if (it == GestureAxis.Vertical) {
+                                stringResource(R.string.setting_vertical)
+                            } else {
+                                stringResource(R.string.setting_horizontal)
+                            },
+                        )
+                    },
                 )
             }
         }
 
+        Text(stringResource(R.string.gesture_preview), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        GesturePreview(
+            axis = axis,
+            direction = direction,
+            distancePercent = distance.toInt(),
+            swipeDurationMillis = swipeDuration.toLong(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(164.dp),
+        )
+
         Text(stringResource(R.string.gesture_distance, distance.toInt()), color = MaterialTheme.colorScheme.onSurface)
-        Slider(value = distance, onValueChange = { distance = it }, valueRange = 10f..90f)
+        Slider(
+            value = distance,
+            onValueChange = {
+                distance = it
+                onGestureDistanceChanged(it.toInt())
+            },
+            valueRange = 10f..90f,
+        )
 
         Text(
             stringResource(R.string.gesture_swipe_time, LocalizedFormatters.seconds(swipeDuration.toLong())),
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Slider(value = swipeDuration, onValueChange = { swipeDuration = it }, valueRange = 200f..2000f, steps = 17)
+        Slider(
+            value = swipeDuration,
+            onValueChange = {
+                swipeDuration = it
+                onSwipeDurationChanged(it.toLong())
+            },
+            valueRange = 200f..2000f,
+            steps = 17,
+        )
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun GesturePreview(
+    axis: GestureAxis,
+    direction: IntentDirection,
+    distancePercent: Int,
+    swipeDurationMillis: Long,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.colorScheme
+    val progress by rememberInfiniteTransition(label = "gesture-preview").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = swipeDurationMillis.toInt().coerceIn(200, 2_000)),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "gesture-progress",
+    )
+
+    Canvas(modifier = modifier) {
+        val phoneWidth = size.width * 0.42f
+        val phoneHeight = size.height * 0.88f
+        val phoneLeft = (size.width - phoneWidth) / 2f
+        val phoneTop = (size.height - phoneHeight) / 2f
+        val phoneRect = Rect(
+            offset = Offset(phoneLeft, phoneTop),
+            size = Size(phoneWidth, phoneHeight),
+        )
+        drawRoundRect(
+            color = colors.surface,
+            topLeft = phoneRect.topLeft,
+            size = phoneRect.size,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx(), 28.dp.toPx()),
+        )
+        drawRoundRect(
+            color = colors.outline.copy(alpha = 0.35f),
+            topLeft = phoneRect.topLeft,
+            size = phoneRect.size,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx(), 28.dp.toPx()),
+            style = Stroke(width = 1.5.dp.toPx()),
+        )
+
+        val maxDistance = if (axis == GestureAxis.Vertical) phoneHeight * 0.62f else phoneWidth * 0.62f
+        val distance = maxDistance * (distancePercent / 90f)
+        val center = phoneRect.center
+        val start = when {
+            axis == GestureAxis.Vertical && direction == IntentDirection.NextItem -> center.copy(y = center.y + distance / 2f)
+            axis == GestureAxis.Vertical -> center.copy(y = center.y - distance / 2f)
+            axis == GestureAxis.Horizontal && direction == IntentDirection.NextItem -> center.copy(x = center.x + distance / 2f)
+            else -> center.copy(x = center.x - distance / 2f)
+        }
+        val end = when {
+            axis == GestureAxis.Vertical && direction == IntentDirection.NextItem -> center.copy(y = center.y - distance / 2f)
+            axis == GestureAxis.Vertical -> center.copy(y = center.y + distance / 2f)
+            axis == GestureAxis.Horizontal && direction == IntentDirection.NextItem -> center.copy(x = center.x - distance / 2f)
+            else -> center.copy(x = center.x + distance / 2f)
+        }
+        val hand = Offset(
+            x = start.x + (end.x - start.x) * progress,
+            y = start.y + (end.y - start.y) * progress,
+        )
+
+        drawLine(
+            color = colors.primary.copy(alpha = 0.28f),
+            start = start,
+            end = end,
+            strokeWidth = 10.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
+        drawCircle(color = colors.primary, radius = 7.dp.toPx(), center = start)
+        drawCircle(color = colors.primary, radius = 7.dp.toPx(), center = end)
+        drawCircle(color = colors.primaryContainer, radius = 19.dp.toPx(), center = hand)
+        drawCircle(color = colors.primary, radius = 11.dp.toPx(), center = hand)
     }
 }
 

@@ -5,6 +5,7 @@ import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
 import com.personal.autoscroll.core.gesture.GestureMapper
 import com.personal.autoscroll.domain.model.AppProfile
+import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.LanguageMode
@@ -34,6 +35,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         this.languageMode = languageMode
         overlayController.showCompact(
             config = profile.overlayConfig,
+            gestureAxis = profile.gestureConfig.axis,
             languageMode = languageMode,
             OverlayActions(
                 onStartStop = { toggleAutomation(scope) },
@@ -63,6 +65,35 @@ class OverlayAutomationCoordinator @Inject constructor(
             overlayConfig = profile.overlayConfig.applyGlobalSettings(settings),
         )
         overlayController.updateCompact(profile.overlayConfig)
+        overlayController.updateExpanded(profile)
+    }
+
+    fun updateGestureAxis(axis: GestureAxis) {
+        profile = profile.copy(
+            gestureConfig = profile.gestureConfig.copy(axis = axis),
+        )
+        overlayController.updateGestureAxis(axis)
+        overlayController.updateExpanded(profile)
+    }
+
+    fun updateIntentDirection(direction: IntentDirection) {
+        profile = profile.copy(
+            gestureConfig = profile.gestureConfig.copy(intentDirection = direction),
+        )
+        overlayController.updateExpanded(profile)
+    }
+
+    fun updateGestureDistance(distancePercent: Int) {
+        profile = profile.copy(
+            gestureConfig = profile.gestureConfig.copy(distancePercent = distancePercent),
+        )
+        overlayController.updateExpanded(profile)
+    }
+
+    fun updateSwipeDuration(durationMillis: Long) {
+        profile = profile.copy(
+            gestureConfig = profile.gestureConfig.copy(swipeDurationMillis = durationMillis),
+        )
         overlayController.updateExpanded(profile)
     }
 

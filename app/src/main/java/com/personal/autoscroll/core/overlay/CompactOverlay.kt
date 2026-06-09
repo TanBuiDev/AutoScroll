@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.LinearLayout
 import com.personal.autoscroll.R
+import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.OverlayConfig
 import com.personal.autoscroll.domain.model.OverlayOrientation
 import com.personal.autoscroll.domain.model.OverlaySize
@@ -22,6 +23,7 @@ class CompactOverlay(
     private val windowManager: WindowManager,
     private val layoutParams: WindowManager.LayoutParams,
     private var overlayConfig: OverlayConfig,
+    private var gestureAxis: GestureAxis,
     private val actions: OverlayActions,
 ) {
     private val rootContainer = LinearLayout(context)
@@ -31,6 +33,8 @@ class CompactOverlay(
     )
     private val handleView = DragHandleView(context)
     private val buttonsContainer = LinearLayout(context)
+    private val nextButton = actionButton(context, OverlayIconType.Next)
+    private val previousButton = actionButton(context, OverlayIconType.Previous)
     private var isCollapsed = false
     private var isRunning = false
 
@@ -49,10 +53,10 @@ class CompactOverlay(
             addOverlayItem(startStopButton.apply {
                 setOnClickListener { actions.onStartStop() }
             })
-            addOverlayItem(actionButton(context, OverlayIconType.Next).apply {
+            addOverlayItem(nextButton.apply {
                 setOnClickListener { actions.onNext() }
             })
-            addOverlayItem(actionButton(context, OverlayIconType.Previous).apply {
+            addOverlayItem(previousButton.apply {
                 setOnClickListener { actions.onPrevious() }
             })
             addOverlayItem(actionButton(context, OverlayIconType.Settings).apply {
@@ -78,6 +82,12 @@ class CompactOverlay(
         applyConfig()
     }
 
+    fun updateGestureAxis(axis: GestureAxis) {
+        gestureAxis = axis
+        nextButton.setGestureAxis(axis)
+        previousButton.setGestureAxis(axis)
+    }
+
     private fun applyConfig() {
         val vertical = overlayConfig.orientation == OverlayOrientation.Vertical
         val densitySize = overlayConfig.size.metrics()
@@ -101,6 +111,7 @@ class CompactOverlay(
             radius = rootContainer.context.dp(if (isCollapsed) 20 else 28).toFloat(),
         )
         rootContainer.alpha = 1f
+        updateGestureAxis(gestureAxis)
         updateButtonSizes(densitySize)
         setRunning(isRunning)
     }
@@ -259,6 +270,10 @@ class CompactOverlay(
             iconView.iconType = iconType
         }
 
+        fun setGestureAxis(axis: GestureAxis) {
+            iconView.gestureAxis = axis
+        }
+
         private fun dp(value: Int): Int =
             (value * resources.displayMetrics.density).toInt()
     }
@@ -268,6 +283,11 @@ class CompactOverlay(
             set(value) {
                 field = value
                 applyTint()
+                invalidate()
+            }
+        var gestureAxis: GestureAxis = GestureAxis.Vertical
+            set(value) {
+                field = value
                 invalidate()
             }
 
@@ -295,8 +315,8 @@ class CompactOverlay(
             when (iconType) {
                 OverlayIconType.Play -> drawPlay(canvas)
                 OverlayIconType.Stop -> drawStop(canvas)
-                OverlayIconType.Next -> drawArrow(canvas, pointsUp = true)
-                OverlayIconType.Previous -> drawArrow(canvas, pointsUp = false)
+                OverlayIconType.Next -> drawDirectionalArrow(canvas, isNext = true)
+                OverlayIconType.Previous -> drawDirectionalArrow(canvas, isNext = false)
                 OverlayIconType.Settings -> drawSliders(canvas)
             }
         }
@@ -320,7 +340,15 @@ class CompactOverlay(
             )
         }
 
-        private fun drawArrow(canvas: Canvas, pointsUp: Boolean) {
+        private fun drawDirectionalArrow(canvas: Canvas, isNext: Boolean) {
+            if (gestureAxis == GestureAxis.Horizontal) {
+                drawHorizontalArrow(canvas, pointsLeft = isNext)
+            } else {
+                drawVerticalArrow(canvas, pointsUp = isNext)
+            }
+        }
+
+        private fun drawVerticalArrow(canvas: Canvas, pointsUp: Boolean) {
             val startY = if (pointsUp) height * 0.76f else height * 0.24f
             val endY = if (pointsUp) height * 0.24f else height * 0.76f
             val headY = endY
@@ -328,6 +356,16 @@ class CompactOverlay(
             canvas.drawLine(width * 0.50f, startY, width * 0.50f, endY, paint)
             canvas.drawLine(width * 0.28f, headBackY, width * 0.50f, headY, paint)
             canvas.drawLine(width * 0.72f, headBackY, width * 0.50f, headY, paint)
+        }
+
+        private fun drawHorizontalArrow(canvas: Canvas, pointsLeft: Boolean) {
+            val startX = if (pointsLeft) width * 0.76f else width * 0.24f
+            val endX = if (pointsLeft) width * 0.24f else width * 0.76f
+            val headX = endX
+            val headBackX = if (pointsLeft) width * 0.46f else width * 0.54f
+            canvas.drawLine(startX, height * 0.50f, endX, height * 0.50f, paint)
+            canvas.drawLine(headBackX, height * 0.28f, headX, height * 0.50f, paint)
+            canvas.drawLine(headBackX, height * 0.72f, headX, height * 0.50f, paint)
         }
 
         private fun drawSliders(canvas: Canvas) {

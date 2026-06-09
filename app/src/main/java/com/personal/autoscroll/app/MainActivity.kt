@@ -22,6 +22,8 @@ import com.personal.autoscroll.core.localization.AppLocale
 import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
+import com.personal.autoscroll.domain.model.GestureAxis
+import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.ThemeMode
 import com.personal.autoscroll.ui.AppNavigation
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
@@ -58,6 +60,10 @@ class MainActivity : ComponentActivity() {
                 currentAppViewModel = currentAppViewModel,
                 advancedViewModel = advancedViewModel,
                 overlaySettingsViewModel = overlaySettingsViewModel,
+                onGestureAxisChanged = viewModel::updateGestureAxis,
+                onIntentDirectionChanged = viewModel::updateIntentDirection,
+                onGestureDistanceChanged = viewModel::updateGestureDistance,
+                onSwipeDurationChanged = viewModel::updateSwipeDuration,
                 onShowOverlay = { viewModel.showOverlay() },
                 onHideOverlay = { viewModel.hideOverlay() },
             )
@@ -78,6 +84,10 @@ private fun AutoScrollApp(
     currentAppViewModel: CurrentAppViewModel,
     advancedViewModel: AdvancedViewModel,
     overlaySettingsViewModel: OverlaySettingsViewModel,
+    onGestureAxisChanged: (GestureAxis) -> Unit,
+    onIntentDirectionChanged: (IntentDirection) -> Unit,
+    onGestureDistanceChanged: (Int) -> Unit,
+    onSwipeDurationChanged: (Long) -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
 ) {
@@ -114,6 +124,10 @@ private fun AutoScrollApp(
                 currentAppViewModel = currentAppViewModel,
                 advancedViewModel = advancedViewModel,
                 overlaySettingsViewModel = overlaySettingsViewModel,
+                onGestureAxisChanged = onGestureAxisChanged,
+                onIntentDirectionChanged = onIntentDirectionChanged,
+                onGestureDistanceChanged = onGestureDistanceChanged,
+                onSwipeDurationChanged = onSwipeDurationChanged,
                 onShowOverlay = onShowOverlay,
                 onHideOverlay = onHideOverlay,
             )
@@ -149,5 +163,21 @@ class MainViewModel @Inject constructor(
 
     fun hideOverlay() {
         overlayAutomationCoordinator.hideOverlay()
+    }
+
+    fun updateGestureAxis(axis: GestureAxis) {
+        overlayAutomationCoordinator.updateGestureAxis(axis)
+    }
+
+    fun updateIntentDirection(direction: IntentDirection) {
+        overlayAutomationCoordinator.updateIntentDirection(direction)
+    }
+
+    fun updateGestureDistance(distancePercent: Int) {
+        overlayAutomationCoordinator.updateGestureDistance(distancePercent)
+    }
+
+    fun updateSwipeDuration(durationMillis: Long) {
+        overlayAutomationCoordinator.updateSwipeDuration(durationMillis)
     }
 }

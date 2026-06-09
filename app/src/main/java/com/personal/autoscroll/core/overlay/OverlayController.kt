@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import com.personal.autoscroll.core.localization.AppLocale
+import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.OverlayConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,7 +22,7 @@ class OverlayController @Inject constructor(
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
-    fun showCompact(config: OverlayConfig, languageMode: LanguageMode, actions: OverlayActions) {
+    fun showCompact(config: OverlayConfig, gestureAxis: GestureAxis, languageMode: LanguageMode, actions: OverlayActions) {
         if (!canDrawOverlays() || compactOverlay != null) return
 
         val overlayContext = AppLocale.localizedContext(context, languageMode)
@@ -35,6 +36,7 @@ class OverlayController @Inject constructor(
             windowManager = windowManager,
             layoutParams = params,
             overlayConfig = config,
+            gestureAxis = gestureAxis,
             actions = actions,
         )
         compactOverlay = overlay
@@ -43,6 +45,10 @@ class OverlayController @Inject constructor(
 
     fun updateCompact(config: OverlayConfig) {
         compactOverlay?.updateConfig(config)
+    }
+
+    fun updateGestureAxis(axis: GestureAxis) {
+        compactOverlay?.updateGestureAxis(axis)
     }
 
     fun setRunning(isRunning: Boolean) {
