@@ -19,5 +19,8 @@ captures/
 *.ap_
 *.aab
 
+# Local reference material
+references/
+
 # Logs
 *.log
