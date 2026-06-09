@@ -1,0 +1,197 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "a88c854b3f9a20cdfff18b7c81f8bfe0",
+    "entities": [
+      {
+        "tableName": "app_profiles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `enabled` INTEGER NOT NULL, `presetType` TEXT NOT NULL, `profileStatus` TEXT NOT NULL, `intentDirection` TEXT NOT NULL, `gestureAxis` TEXT NOT NULL, `distancePercent` INTEGER NOT NULL, `startXPercent` INTEGER NOT NULL, `startYPercent` INTEGER NOT NULL, `speedLevel` INTEGER NOT NULL, `invertPhysicalDirection` INTEGER NOT NULL, `scrollMode` TEXT NOT NULL, `delayMillis` INTEGER NOT NULL, `startDelayMillis` INTEGER NOT NULL, `repeatCount` INTEGER, `durationMillis` INTEGER, `stopOnAppChange` INTEGER NOT NULL, `compactPositionX` INTEGER NOT NULL, `compactPositionY` INTEGER NOT NULL, `expandedPositionX` INTEGER NOT NULL, `expandedPositionY` INTEGER NOT NULL, `opacity` REAL NOT NULL, `overlaySize` TEXT NOT NULL, `showNextPrevious` INTEGER NOT NULL, `autoCollapse` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "presetType",
+            "columnName": "presetType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileStatus",
+            "columnName": "profileStatus",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentDirection",
+            "columnName": "intentDirection",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gestureAxis",
+            "columnName": "gestureAxis",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distancePercent",
+            "columnName": "distancePercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startXPercent",
+            "columnName": "startXPercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startYPercent",
+            "columnName": "startYPercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedLevel",
+            "columnName": "speedLevel",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "invertPhysicalDirection",
+            "columnName": "invertPhysicalDirection",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scrollMode",
+            "columnName": "scrollMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "delayMillis",
+            "columnName": "delayMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startDelayMillis",
+            "columnName": "startDelayMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatCount",
+            "columnName": "repeatCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "durationMillis",
+            "columnName": "durationMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stopOnAppChange",
+            "columnName": "stopOnAppChange",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "compactPositionX",
+            "columnName": "compactPositionX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "compactPositionY",
+            "columnName": "compactPositionY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expandedPositionX",
+            "columnName": "expandedPositionX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expandedPositionY",
+            "columnName": "expandedPositionY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opacity",
+            "columnName": "opacity",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "overlaySize",
+            "columnName": "overlaySize",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "showNextPrevious",
+            "columnName": "showNextPrevious",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "autoCollapse",
+            "columnName": "autoCollapse",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a88c854b3f9a20cdfff18b7c81f8bfe0')"
+    ]
+  }
+}

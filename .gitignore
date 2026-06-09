@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Kotlin
+.kotlin/
+
+# Local machine config
+local.properties
+
+# Generated files
+captures/
+*.apk
+*.ap_
+*.aab
+
+# Logs
+*.log

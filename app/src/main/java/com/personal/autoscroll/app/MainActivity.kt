@@ -1,0 +1,118 @@
+package com.personal.autoscroll.app
+
+import android.os.Bundle
+import android.graphics.Color
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import android.view.Window
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
+import com.personal.autoscroll.data.datastore.SettingsDataStore
+import com.personal.autoscroll.domain.model.GlobalSettings
+import com.personal.autoscroll.domain.model.ThemeMode
+import com.personal.autoscroll.ui.AppNavigation
+import com.personal.autoscroll.ui.advanced.AdvancedViewModel
+import com.personal.autoscroll.ui.currentapp.CurrentAppViewModel
+import com.personal.autoscroll.ui.profiles.ProfilesViewModel
+import com.personal.autoscroll.ui.theme.AutoScrollTheme
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    private val viewModel: MainViewModel by viewModels()
+    private val profilesViewModel: ProfilesViewModel by viewModels()
+    private val currentAppViewModel: CurrentAppViewModel by viewModels()
+    private val advancedViewModel: AdvancedViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+
+        setContent {
+            AutoScrollApp(
+                window = window,
+                viewModel = viewModel,
+                profilesViewModel = profilesViewModel,
+                currentAppViewModel = currentAppViewModel,
+                advancedViewModel = advancedViewModel,
+                onShowOverlay = { viewModel.showOverlay() },
+                onHideOverlay = { viewModel.hideOverlay() },
+            )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        currentAppViewModel.refreshPermissions()
+    }
+}
+
+@Composable
+private fun AutoScrollApp(
+    window: Window,
+    viewModel: MainViewModel,
+    profilesViewModel: ProfilesViewModel,
+    currentAppViewModel: CurrentAppViewModel,
+    advancedViewModel: AdvancedViewModel,
+    onShowOverlay: () -> Unit,
+    onHideOverlay: () -> Unit,
+) {
+    val settings = viewModel.settings.collectAsStateWithLifecycle()
+    val systemDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = when (settings.value.themeMode) {
+        ThemeMode.System -> systemDarkTheme
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+    }
+    val view = LocalView.current
+
+    SideEffect {
+        val insetsController = WindowCompat.getInsetsController(window, view)
+        insetsController.isAppearanceLightStatusBars = !useDarkTheme
+        insetsController.isAppearanceLightNavigationBars = !useDarkTheme
+    }
+
+    AutoScrollTheme(themeMode = settings.value.themeMode) {
+        AppNavigation(
+            profilesViewModel = profilesViewModel,
+            currentAppViewModel = currentAppViewModel,
+            advancedViewModel = advancedViewModel,
+            onShowOverlay = onShowOverlay,
+            onHideOverlay = onHideOverlay,
+        )
+    }
+}
+
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val overlayAutomationCoordinator: OverlayAutomationCoordinator,
+    settingsDataStore: SettingsDataStore,
+) : ViewModel() {
+    val settings = settingsDataStore.settings.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = GlobalSettings.Default,
+    )
+
+    fun showOverlay() {
+        overlayAutomationCoordinator.showOverlay(viewModelScope)
+    }
+
+    fun hideOverlay() {
+        overlayAutomationCoordinator.hideOverlay()
+    }
+}
