@@ -5,7 +5,10 @@
     <string name="accessibility_service_description">Cho phép Auto Scroll thực hiện thao tác vuốt cho ứng dụng đã chọn.</string>
     <string name="accessibility_service_summary">Dịch vụ thao tác tự động</string>
     <string name="nav_profiles">Hồ sơ</string>
+    <string name="nav_current">Hiện tại</string>
     <string name="nav_current_app">Ứng dụng hiện tại</string>
+    <string name="nav_automation_tab">Tự động</string>
+    <string name="nav_automation">Tự động hóa</string>
     <string name="nav_gesture">Cử chỉ</string>
     <string name="nav_timing">Thời gian</string>
     <string name="nav_overlay">Overlay</string>
@@ -46,7 +49,7 @@
     <string name="action_save">Lưu</string>
     <string name="action_show_overlay">Hiện overlay</string>
     <string name="action_hide_overlay">Ẩn overlay</string>
-    <string name="profiles_empty">Chưa có hồ sơ đã lưu. Mở Ứng dụng hiện tại, thử cử chỉ rồi lưu hồ sơ.</string>
+    <string name="profiles_empty">Chưa có hồ sơ đã lưu. Mở Ứng dụng hiện tại, hiện overlay rồi lưu hồ sơ.</string>
     <string name="overlay_start">Chạy</string>
     <string name="overlay_stop">Dừng</string>
     <string name="overlay_next">Tiếp</string>

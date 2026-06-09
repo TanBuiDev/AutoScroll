@@ -24,14 +24,16 @@ import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun GestureScreen() {
+fun GestureScreen(showTitle: Boolean = true) {
     var direction by remember { mutableStateOf(IntentDirection.NextItem) }
     var axis by remember { mutableStateOf(GestureAxis.Vertical) }
     var distance by remember { mutableFloatStateOf(55f) }
     var swipeDuration by remember { mutableFloatStateOf(600f) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ScreenTitle(stringResource(R.string.nav_gesture))
+        if (showTitle) {
+            ScreenTitle(stringResource(R.string.nav_gesture))
+        }
         Text(stringResource(R.string.setting_direction), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IntentDirection.entries.forEach {

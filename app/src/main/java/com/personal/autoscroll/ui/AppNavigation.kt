@@ -12,8 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -42,12 +42,10 @@ import com.personal.autoscroll.ui.timing.TimingScreen
 enum class AppDestination(
     @param:StringRes val labelRes: Int,
 ) {
+    CurrentApp(R.string.nav_current),
     Profiles(R.string.nav_profiles),
-    CurrentApp(R.string.nav_current_app),
-    Gesture(R.string.nav_gesture),
-    Timing(R.string.nav_timing),
+    Automation(R.string.nav_automation_tab),
     Overlay(R.string.nav_overlay),
-    Advanced(R.string.nav_advanced),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,9 +89,8 @@ fun AppNavigation(
                             titleContentColor = MaterialTheme.colorScheme.onBackground,
                         ),
                     )
-                    ScrollableTabRow(
+                    PrimaryTabRow(
                         selectedTabIndex = destination.ordinal,
-                        edgePadding = 12.dp,
                         containerColor = MaterialTheme.colorScheme.background,
                         contentColor = MaterialTheme.colorScheme.primary,
                     ) {
@@ -117,19 +114,38 @@ fun AppNavigation(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     when (destination) {
-                        AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
                         AppDestination.CurrentApp -> CurrentAppScreen(
                             viewModel = currentAppViewModel,
                             onShowOverlay = onShowOverlay,
                             onHideOverlay = onHideOverlay,
                         )
-                        AppDestination.Gesture -> GestureScreen()
-                        AppDestination.Timing -> TimingScreen()
-                        AppDestination.Overlay -> OverlaySettingsScreen()
-                        AppDestination.Advanced -> AdvancedScreen(advancedViewModel)
+                        AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
+                        AppDestination.Automation -> AutomationScreen()
+                        AppDestination.Overlay -> OverlayScreen(advancedViewModel)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AutomationScreen() {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Text(
+            text = stringResource(R.string.nav_automation),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        GestureScreen(showTitle = true)
+        TimingScreen(showTitle = true)
+    }
+}
+
+@Composable
+private fun OverlayScreen(advancedViewModel: AdvancedViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        OverlaySettingsScreen(showTitle = true)
+        AdvancedScreen(viewModel = advancedViewModel, showTitle = true)
     }
 }

@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @Composable
-fun AdvancedScreen(viewModel: AdvancedViewModel) {
+fun AdvancedScreen(viewModel: AdvancedViewModel, showTitle: Boolean = true) {
     var screenshot by remember { mutableStateOf(false) }
     var recording by remember { mutableStateOf(false) }
     var audio by remember { mutableStateOf(false) }
@@ -41,11 +41,13 @@ fun AdvancedScreen(viewModel: AdvancedViewModel) {
     val languageMode by viewModel.languageMode.collectAsStateWithLifecycle()
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = stringResource(R.string.nav_advanced),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        if (showTitle) {
+            Text(
+                text = stringResource(R.string.nav_advanced),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
         Text(
             text = stringResource(R.string.advanced_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant,

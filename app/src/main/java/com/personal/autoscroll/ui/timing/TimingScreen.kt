@@ -23,18 +23,20 @@ import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun TimingScreen() {
+fun TimingScreen(showTitle: Boolean = true) {
     var mode by remember { mutableStateOf(ScrollMode.UntilStop) }
     var delaySeconds by remember { mutableFloatStateOf(6.5f) }
     var repeatCount by remember { mutableFloatStateOf(10f) }
     var durationMinutes by remember { mutableFloatStateOf(30f) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = stringResource(R.string.nav_timing),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        if (showTitle) {
+            Text(
+                text = stringResource(R.string.nav_timing),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ScrollMode.entries.forEach {
                 FilterChip(

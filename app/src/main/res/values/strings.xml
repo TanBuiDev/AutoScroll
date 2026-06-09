@@ -5,7 +5,10 @@
     <string name="accessibility_service_description">Allows Auto Scroll to run swipe gestures for selected apps.</string>
     <string name="accessibility_service_summary">Auto-scroll gesture service</string>
     <string name="nav_profiles">Profiles</string>
+    <string name="nav_current">Current</string>
     <string name="nav_current_app">Current App</string>
+    <string name="nav_automation_tab">Auto</string>
+    <string name="nav_automation">Automation</string>
     <string name="nav_gesture">Gesture</string>
     <string name="nav_timing">Timing</string>
     <string name="nav_overlay">Overlay</string>
@@ -46,7 +49,7 @@
     <string name="action_save">Save</string>
     <string name="action_show_overlay">Show overlay</string>
     <string name="action_hide_overlay">Hide overlay</string>
-    <string name="profiles_empty">No saved profiles yet. Open Current App, test a gesture, then save a profile.</string>
+    <string name="profiles_empty">No saved profiles yet. Open Current App, show the overlay, then save a profile.</string>
     <string name="overlay_start">Start</string>
     <string name="overlay_stop">Stop</string>
     <string name="overlay_next">Next</string>

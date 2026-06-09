@@ -24,18 +24,20 @@ import com.personal.autoscroll.domain.model.OverlaySize
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun OverlaySettingsScreen() {
+fun OverlaySettingsScreen(showTitle: Boolean = true) {
     var opacity by remember { mutableFloatStateOf(0.92f) }
     var size by remember { mutableStateOf(OverlaySize.Medium) }
     var showNextPrevious by remember { mutableStateOf(true) }
     var autoCollapse by remember { mutableStateOf(true) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = stringResource(R.string.nav_overlay),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        if (showTitle) {
+            Text(
+                text = stringResource(R.string.nav_overlay),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
         Text(
             "${stringResource(R.string.label_opacity)}: ${LocalizedFormatters.percent(opacity)}",
             color = MaterialTheme.colorScheme.onSurface,
