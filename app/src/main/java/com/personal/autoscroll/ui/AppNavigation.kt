@@ -35,6 +35,7 @@ import com.personal.autoscroll.ui.currentapp.CurrentAppScreen
 import com.personal.autoscroll.ui.currentapp.CurrentAppViewModel
 import com.personal.autoscroll.ui.gesture.GestureScreen
 import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsScreen
+import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsViewModel
 import com.personal.autoscroll.ui.profiles.ProfilesScreen
 import com.personal.autoscroll.ui.profiles.ProfilesViewModel
 import com.personal.autoscroll.ui.timing.TimingScreen
@@ -54,6 +55,7 @@ fun AppNavigation(
     profilesViewModel: ProfilesViewModel,
     currentAppViewModel: CurrentAppViewModel,
     advancedViewModel: AdvancedViewModel,
+    overlaySettingsViewModel: OverlaySettingsViewModel,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
 ) {
@@ -121,7 +123,10 @@ fun AppNavigation(
                         )
                         AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
                         AppDestination.Automation -> AutomationScreen()
-                        AppDestination.Overlay -> OverlayScreen(advancedViewModel)
+                        AppDestination.Overlay -> OverlayScreen(
+                            overlaySettingsViewModel = overlaySettingsViewModel,
+                            advancedViewModel = advancedViewModel,
+                        )
                     }
                 }
             }
@@ -143,9 +148,12 @@ private fun AutomationScreen() {
 }
 
 @Composable
-private fun OverlayScreen(advancedViewModel: AdvancedViewModel) {
+private fun OverlayScreen(
+    overlaySettingsViewModel: OverlaySettingsViewModel,
+    advancedViewModel: AdvancedViewModel,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        OverlaySettingsScreen(showTitle = true)
+        OverlaySettingsScreen(viewModel = overlaySettingsViewModel, showTitle = true)
         AdvancedScreen(viewModel = advancedViewModel, showTitle = true)
     }
 }

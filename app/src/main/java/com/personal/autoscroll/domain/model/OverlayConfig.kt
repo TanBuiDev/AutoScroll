@@ -36,3 +36,11 @@ data class OverlayConfig(
         )
     }
 }
+
+fun OverlayConfig.applyGlobalSettings(settings: GlobalSettings): OverlayConfig =
+    copy(
+        opacity = settings.overlayOpacity,
+        size = settings.overlaySize,
+        compactPositionX = settings.compactPositionX,
+        compactPositionY = settings.compactPositionY,
+    )

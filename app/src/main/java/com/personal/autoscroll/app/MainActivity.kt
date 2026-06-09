@@ -26,6 +26,7 @@ import com.personal.autoscroll.domain.model.ThemeMode
 import com.personal.autoscroll.ui.AppNavigation
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
 import com.personal.autoscroll.ui.currentapp.CurrentAppViewModel
+import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsViewModel
 import com.personal.autoscroll.ui.profiles.ProfilesViewModel
 import com.personal.autoscroll.ui.theme.AutoScrollTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,6 +34,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
     private val profilesViewModel: ProfilesViewModel by viewModels()
     private val currentAppViewModel: CurrentAppViewModel by viewModels()
     private val advancedViewModel: AdvancedViewModel by viewModels()
+    private val overlaySettingsViewModel: OverlaySettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +57,7 @@ class MainActivity : ComponentActivity() {
                 profilesViewModel = profilesViewModel,
                 currentAppViewModel = currentAppViewModel,
                 advancedViewModel = advancedViewModel,
+                overlaySettingsViewModel = overlaySettingsViewModel,
                 onShowOverlay = { viewModel.showOverlay() },
                 onHideOverlay = { viewModel.hideOverlay() },
             )
@@ -73,6 +77,7 @@ private fun AutoScrollApp(
     profilesViewModel: ProfilesViewModel,
     currentAppViewModel: CurrentAppViewModel,
     advancedViewModel: AdvancedViewModel,
+    overlaySettingsViewModel: OverlaySettingsViewModel,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
 ) {
@@ -108,6 +113,7 @@ private fun AutoScrollApp(
                 profilesViewModel = profilesViewModel,
                 currentAppViewModel = currentAppViewModel,
                 advancedViewModel = advancedViewModel,
+                overlaySettingsViewModel = overlaySettingsViewModel,
                 onShowOverlay = onShowOverlay,
                 onHideOverlay = onHideOverlay,
             )
@@ -125,6 +131,14 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GlobalSettings.Default,
     )
+
+    init {
+        viewModelScope.launch {
+            settings.collect { currentSettings ->
+                overlayAutomationCoordinator.applyGlobalSettings(currentSettings)
+            }
+        }
+    }
 
     fun showOverlay() {
         overlayAutomationCoordinator.showOverlay(

@@ -19,14 +19,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.R
+import com.personal.autoscroll.data.datastore.SettingsDataStore
+import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.OverlaySize
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun OverlaySettingsScreen(showTitle: Boolean = true) {
-    var opacity by remember { mutableFloatStateOf(0.92f) }
-    var size by remember { mutableStateOf(OverlaySize.Medium) }
+fun OverlaySettingsScreen(viewModel: OverlaySettingsViewModel, showTitle: Boolean = true) {
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
     var showNextPrevious by remember { mutableStateOf(true) }
     var autoCollapse by remember { mutableStateOf(true) }
 
@@ -39,16 +48,20 @@ fun OverlaySettingsScreen(showTitle: Boolean = true) {
             )
         }
         Text(
-            "${stringResource(R.string.label_opacity)}: ${LocalizedFormatters.percent(opacity)}",
+            "${stringResource(R.string.label_opacity)}: ${LocalizedFormatters.percent(settings.overlayOpacity)}",
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Slider(value = opacity, onValueChange = { opacity = it }, valueRange = 0.4f..1f)
+        Slider(
+            value = settings.overlayOpacity,
+            onValueChange = viewModel::updateOverlayOpacity,
+            valueRange = 0.4f..1f,
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OverlaySize.entries.forEach {
                 FilterChip(
-                    selected = it == size,
-                    onClick = { size = it },
+                    selected = it == settings.overlaySize,
+                    onClick = { viewModel.updateOverlaySize(it) },
                     label = { Text(it.toString()) },
                 )
             }
@@ -65,5 +78,28 @@ private fun ToggleLine(label: String, checked: Boolean, onCheckedChange: (Boolea
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Switch(checked = checked, onCheckedChange = onCheckedChange)
         Text(label, color = MaterialTheme.colorScheme.onSurface, maxLines = 2)
+    }
+}
+
+@HiltViewModel
+class OverlaySettingsViewModel @Inject constructor(
+    private val settingsDataStore: SettingsDataStore,
+) : ViewModel() {
+    val settings = settingsDataStore.settings.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = GlobalSettings.Default,
+    )
+
+    fun updateOverlayOpacity(opacity: Float) {
+        viewModelScope.launch {
+            settingsDataStore.updateOverlayOpacity(opacity)
+        }
+    }
+
+    fun updateOverlaySize(size: OverlaySize) {
+        viewModelScope.launch {
+            settingsDataStore.updateOverlaySize(size)
+        }
     }
 }

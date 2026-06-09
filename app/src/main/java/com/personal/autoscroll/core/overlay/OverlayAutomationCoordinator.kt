@@ -5,10 +5,12 @@ import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
 import com.personal.autoscroll.core.gesture.GestureMapper
 import com.personal.autoscroll.domain.model.AppProfile
+import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ScrollMode
+import com.personal.autoscroll.domain.model.applyGlobalSettings
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -54,6 +56,14 @@ class OverlayAutomationCoordinator @Inject constructor(
         stateJob?.cancel()
         stateJob = null
         overlayController.hideAll()
+    }
+
+    fun applyGlobalSettings(settings: GlobalSettings) {
+        profile = profile.copy(
+            overlayConfig = profile.overlayConfig.applyGlobalSettings(settings),
+        )
+        overlayController.updateCompact(profile.overlayConfig)
+        overlayController.updateExpanded(profile)
     }
 
     private fun toggleAutomation(scope: CoroutineScope) {
