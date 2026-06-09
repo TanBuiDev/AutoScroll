@@ -6,6 +6,8 @@ import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import com.personal.autoscroll.core.localization.AppLocale
+import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.OverlayConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,12 +21,13 @@ class OverlayController @Inject constructor(
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
-    fun showCompact(config: OverlayConfig, actions: OverlayActions) {
+    fun showCompact(config: OverlayConfig, languageMode: LanguageMode, actions: OverlayActions) {
         if (!canDrawOverlays() || compactOverlay != null) return
 
+        val overlayContext = AppLocale.localizedContext(context, languageMode)
         val params = defaultParams(width = WindowManager.LayoutParams.WRAP_CONTENT)
         val overlay = CompactOverlay(
-            context = context,
+            context = overlayContext,
             windowManager = windowManager,
             layoutParams = params,
             overlayConfig = config,
@@ -42,10 +45,14 @@ class OverlayController @Inject constructor(
         compactOverlay?.setRunning(isRunning)
     }
 
-    fun toggleExpanded(profile: com.personal.autoscroll.domain.model.AppProfile, actions: ExpandedOverlayActions) {
+    fun toggleExpanded(
+        profile: com.personal.autoscroll.domain.model.AppProfile,
+        languageMode: LanguageMode,
+        actions: ExpandedOverlayActions,
+    ) {
         if (!canDrawOverlays()) return
         if (expandedOverlay == null) {
-            val overlay = ExpandedOverlay(context, profile, actions)
+            val overlay = ExpandedOverlay(AppLocale.localizedContext(context, languageMode), profile, actions)
             expandedOverlay = overlay
             windowManager.addView(overlay.view, defaultParams(width = 520))
         } else {

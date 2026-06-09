@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.R
 import com.personal.autoscroll.data.datastore.SettingsDataStore
+import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -37,6 +38,7 @@ fun AdvancedScreen(viewModel: AdvancedViewModel) {
     var audio by remember { mutableStateOf(false) }
     var boot by remember { mutableStateOf(false) }
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val languageMode by viewModel.languageMode.collectAsStateWithLifecycle()
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -54,6 +56,16 @@ fun AdvancedScreen(viewModel: AdvancedViewModel) {
                 FilterChip(
                     selected = mode == themeMode,
                     onClick = { viewModel.updateThemeMode(mode) },
+                    label = { Text(mode.label(), maxLines = 2) },
+                )
+            }
+        }
+        Text(stringResource(R.string.setting_language), color = MaterialTheme.colorScheme.onSurface)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LanguageMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = mode == languageMode,
+                    onClick = { viewModel.updateLanguageMode(mode) },
                     label = { Text(mode.label(), maxLines = 2) },
                 )
             }
@@ -77,10 +89,23 @@ class AdvancedViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = ThemeMode.System,
         )
+    val languageMode = settingsDataStore.settings
+        .map { it.languageMode }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = LanguageMode.System,
+        )
 
     fun updateThemeMode(themeMode: ThemeMode) {
         viewModelScope.launch {
             settingsDataStore.updateThemeMode(themeMode)
+        }
+    }
+
+    fun updateLanguageMode(languageMode: LanguageMode) {
+        viewModelScope.launch {
+            settingsDataStore.updateLanguageMode(languageMode)
         }
     }
 }
@@ -98,4 +123,11 @@ private fun ThemeMode.label(): String = when (this) {
     ThemeMode.System -> stringResource(R.string.theme_system)
     ThemeMode.Light -> stringResource(R.string.theme_light)
     ThemeMode.Dark -> stringResource(R.string.theme_dark)
+}
+
+@Composable
+private fun LanguageMode.label(): String = when (this) {
+    LanguageMode.System -> stringResource(R.string.language_system)
+    LanguageMode.English -> stringResource(R.string.language_english)
+    LanguageMode.Vietnamese -> stringResource(R.string.language_vietnamese)
 }

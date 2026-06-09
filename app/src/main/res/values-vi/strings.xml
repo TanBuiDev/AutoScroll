@@ -67,9 +67,13 @@
     <string name="advanced_audio">Âm báo / ghi âm</string>
     <string name="advanced_boot">Chạy sau khi khởi động lại</string>
     <string name="setting_theme">Giao diện</string>
+    <string name="setting_language">Ngôn ngữ</string>
     <string name="theme_system">Theo hệ thống</string>
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
+    <string name="language_system">Theo hệ thống</string>
+    <string name="language_english">Tiếng Anh</string>
+    <string name="language_vietnamese">Tiếng Việt</string>
     <string name="profile_summary">%1$s • %2$s • %3$s • %4$s</string>
     <string name="minutes_short">%1$d phút</string>
     <string name="message_test_completed">Đã thử cử chỉ</string>

@@ -6,14 +6,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import android.view.Window
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.personal.autoscroll.core.localization.AppLocale
 import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
@@ -72,6 +77,8 @@ private fun AutoScrollApp(
     onHideOverlay: () -> Unit,
 ) {
     val settings = viewModel.settings.collectAsStateWithLifecycle()
+    val baseConfiguration = LocalConfiguration.current
+    val baseContext = LocalContext.current
     val systemDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = when (settings.value.themeMode) {
         ThemeMode.System -> systemDarkTheme
@@ -79,6 +86,12 @@ private fun AutoScrollApp(
         ThemeMode.Dark -> true
     }
     val view = LocalView.current
+    val localizedContext = remember(baseContext, settings.value.languageMode) {
+        AppLocale.localizedContext(baseContext, settings.value.languageMode)
+    }
+    val localizedConfiguration = remember(baseConfiguration, settings.value.languageMode) {
+        AppLocale.localizedConfiguration(baseConfiguration, settings.value.languageMode)
+    }
 
     SideEffect {
         val insetsController = WindowCompat.getInsetsController(window, view)
@@ -86,14 +99,19 @@ private fun AutoScrollApp(
         insetsController.isAppearanceLightNavigationBars = !useDarkTheme
     }
 
-    AutoScrollTheme(themeMode = settings.value.themeMode) {
-        AppNavigation(
-            profilesViewModel = profilesViewModel,
-            currentAppViewModel = currentAppViewModel,
-            advancedViewModel = advancedViewModel,
-            onShowOverlay = onShowOverlay,
-            onHideOverlay = onHideOverlay,
-        )
+    CompositionLocalProvider(
+        LocalContext provides localizedContext,
+        LocalConfiguration provides localizedConfiguration,
+    ) {
+        AutoScrollTheme(themeMode = settings.value.themeMode) {
+            AppNavigation(
+                profilesViewModel = profilesViewModel,
+                currentAppViewModel = currentAppViewModel,
+                advancedViewModel = advancedViewModel,
+                onShowOverlay = onShowOverlay,
+                onHideOverlay = onHideOverlay,
+            )
+        }
     }
 }
 
@@ -109,7 +127,10 @@ class MainViewModel @Inject constructor(
     )
 
     fun showOverlay() {
-        overlayAutomationCoordinator.showOverlay(viewModelScope)
+        overlayAutomationCoordinator.showOverlay(
+            scope = viewModelScope,
+            languageMode = settings.value.languageMode,
+        )
     }
 
     fun hideOverlay() {

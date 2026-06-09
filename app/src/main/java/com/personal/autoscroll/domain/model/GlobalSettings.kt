@@ -6,6 +6,7 @@ data class GlobalSettings(
     val compactPositionX: Int,
     val compactPositionY: Int,
     val themeMode: ThemeMode,
+    val languageMode: LanguageMode,
 ) {
     companion object {
         val Default = GlobalSettings(
@@ -14,6 +15,7 @@ data class GlobalSettings(
             compactPositionX = 24,
             compactPositionY = 240,
             themeMode = ThemeMode.System,
+            languageMode = LanguageMode.System,
         )
     }
 }

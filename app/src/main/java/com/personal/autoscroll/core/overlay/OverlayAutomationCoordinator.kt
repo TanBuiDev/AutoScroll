@@ -6,6 +6,7 @@ import com.personal.autoscroll.core.automation.AutomationState
 import com.personal.autoscroll.core.gesture.GestureMapper
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.IntentDirection
+import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ScrollMode
 import javax.inject.Inject
@@ -25,10 +26,13 @@ class OverlayAutomationCoordinator @Inject constructor(
         presetType = PresetType.VideoFeed,
     )
     private var stateJob: Job? = null
+    private var languageMode: LanguageMode = LanguageMode.System
 
-    fun showOverlay(scope: CoroutineScope) {
+    fun showOverlay(scope: CoroutineScope, languageMode: LanguageMode) {
+        this.languageMode = languageMode
         overlayController.showCompact(
             config = profile.overlayConfig,
+            languageMode = languageMode,
             OverlayActions(
                 onStartStop = { toggleAutomation(scope) },
                 onNext = { runManualGesture(scope, IntentDirection.NextItem) },
@@ -89,6 +93,7 @@ class OverlayAutomationCoordinator @Inject constructor(
     private fun toggleSettings(scope: CoroutineScope) {
         overlayController.toggleExpanded(
             profile = profile,
+            languageMode = languageMode,
             actions = ExpandedOverlayActions(
                 onModeChanged = { mode ->
                     updateProfile { copy(timingConfig = timingConfig.copy(mode = mode)) }

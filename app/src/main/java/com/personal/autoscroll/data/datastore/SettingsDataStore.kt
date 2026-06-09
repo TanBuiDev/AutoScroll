@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
+import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.OverlaySize
 import com.personal.autoscroll.domain.model.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -35,6 +36,9 @@ class SettingsDataStore @Inject constructor(
             themeMode = preferences[THEME_MODE]
                 ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: GlobalSettings.Default.themeMode,
+            languageMode = preferences[LANGUAGE_MODE]
+                ?.let { runCatching { LanguageMode.valueOf(it) }.getOrNull() }
+                ?: GlobalSettings.Default.languageMode,
         )
     }
 
@@ -63,11 +67,18 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
+    suspend fun updateLanguageMode(languageMode: LanguageMode) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[LANGUAGE_MODE] = languageMode.name
+        }
+    }
+
     private companion object {
         val OVERLAY_OPACITY = floatPreferencesKey("overlay_opacity")
         val OVERLAY_SIZE = stringPreferencesKey("overlay_size")
         val COMPACT_POSITION_X = intPreferencesKey("compact_position_x")
         val COMPACT_POSITION_Y = intPreferencesKey("compact_position_y")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val LANGUAGE_MODE = stringPreferencesKey("language_mode")
     }
 }
