@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -83,7 +82,6 @@ fun CurrentAppScreen(
         )
 
         QuickActionsCard(
-            onTest = viewModel::testGesture,
             onSave = viewModel::saveProfile,
             onShowOverlay = onShowOverlay,
             onHideOverlay = onHideOverlay,
@@ -239,7 +237,6 @@ private fun ProfileCard(
 
 @Composable
 private fun QuickActionsCard(
-    onTest: () -> Unit,
     onSave: () -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
@@ -275,25 +272,12 @@ private fun QuickActionsCard(
                     Text(stringResource(R.string.action_hide_overlay), maxLines = 1)
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = onTest,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(13.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
-                ) {
-                    Text(stringResource(R.string.action_test), maxLines = 1)
-                }
-                Button(
-                    onClick = onSave,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(13.dp),
-                ) {
-                    Text(stringResource(R.string.action_save), maxLines = 1)
-                }
+            Button(
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(13.dp),
+            ) {
+                Text(stringResource(R.string.action_save), maxLines = 1)
             }
         }
     }
