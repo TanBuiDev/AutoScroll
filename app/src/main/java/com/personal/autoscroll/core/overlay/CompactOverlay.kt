@@ -12,7 +12,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.LinearLayout
-import android.widget.TextView
 import com.personal.autoscroll.R
 import com.personal.autoscroll.domain.model.OverlayConfig
 import com.personal.autoscroll.domain.model.OverlayOrientation
@@ -28,7 +27,6 @@ class CompactOverlay(
     private val rootContainer = LinearLayout(context)
     private val startStopButton = actionButton(
         context = context,
-        label = context.getString(R.string.overlay_start),
         iconType = OverlayIconType.Play,
         isPrimary = true,
     )
@@ -52,13 +50,13 @@ class CompactOverlay(
             addOverlayItem(startStopButton.apply {
                 setOnClickListener { actions.onStartStop() }
             })
-            addOverlayItem(actionButton(context, context.getString(R.string.overlay_next), OverlayIconType.Next).apply {
+            addOverlayItem(actionButton(context, OverlayIconType.Next).apply {
                 setOnClickListener { actions.onNext() }
             })
-            addOverlayItem(actionButton(context, context.getString(R.string.overlay_previous), OverlayIconType.Previous).apply {
+            addOverlayItem(actionButton(context, OverlayIconType.Previous).apply {
                 setOnClickListener { actions.onPrevious() }
             })
-            addOverlayItem(actionButton(context, context.getString(R.string.overlay_config), OverlayIconType.Settings).apply {
+            addOverlayItem(actionButton(context, OverlayIconType.Settings).apply {
                 setOnClickListener { actions.onSettings() }
             })
         }
@@ -68,12 +66,6 @@ class CompactOverlay(
 
     fun setRunning(isRunning: Boolean) {
         this.isRunning = isRunning
-        val label = if (isRunning) {
-            startStopButton.context.getString(R.string.overlay_stop)
-        } else {
-            startStopButton.context.getString(R.string.overlay_start)
-        }
-        startStopButton.setLabel(label)
         startStopButton.setIconType(if (isRunning) OverlayIconType.Stop else OverlayIconType.Play)
         startStopButton.background = if (isRunning) {
             actionButtonBackground(startStopButton.context, isPrimary = true, isDanger = true)
@@ -98,19 +90,15 @@ class CompactOverlay(
         buttonsContainer.orientation = rootContainer.orientation
         buttonsContainer.visibility = if (isCollapsed) View.GONE else View.VISIBLE
         rootContainer.setPadding(
-            rootContainer.context.dp(if (isCollapsed) 8 else densitySize.panelPaddingHorizontal),
-            rootContainer.context.dp(if (isCollapsed) 8 else densitySize.panelPaddingVertical),
-            rootContainer.context.dp(if (isCollapsed) 8 else densitySize.panelPaddingHorizontal),
-            rootContainer.context.dp(if (isCollapsed) 8 else densitySize.panelPaddingVertical),
+            rootContainer.context.dp(densitySize.panelPaddingHorizontal),
+            rootContainer.context.dp(densitySize.panelPaddingVertical),
+            rootContainer.context.dp(densitySize.panelPaddingHorizontal),
+            rootContainer.context.dp(densitySize.panelPaddingVertical),
         )
         rootContainer.background = roundedBackground(
-            fill = if (isCollapsed) {
-                Color.argb((246 * overlayConfig.opacity).toInt(), 245, 247, 251)
-            } else {
-                Color.argb((242 * overlayConfig.opacity).toInt(), 241, 245, 250)
-            },
-            stroke = Color.argb((118 * overlayConfig.opacity).toInt(), 216, 222, 232),
-            radius = rootContainer.context.dp(if (isCollapsed) 24 else 22).toFloat(),
+            fill = Color.argb((184 * overlayConfig.opacity).toInt(), 245, 247, 251),
+            stroke = Color.argb((128 * overlayConfig.opacity).toInt(), 216, 222, 232),
+            radius = rootContainer.context.dp(28).toFloat(),
         )
         rootContainer.alpha = 1f
         updateButtonSizes(densitySize)
@@ -161,10 +149,9 @@ class CompactOverlay(
 
     private fun actionButton(
         context: Context,
-        label: String,
         iconType: OverlayIconType,
         isPrimary: Boolean = false,
-    ): OverlayActionButton = OverlayActionButton(context, label, iconType).apply {
+    ): OverlayActionButton = OverlayActionButton(context, iconType).apply {
         isClickable = true
         isFocusable = true
         background = actionButtonBackground(context, isPrimary)
@@ -178,15 +165,15 @@ class CompactOverlay(
         roundedBackground(
             fill = when {
                 isDanger -> Color.rgb(218, 64, 72)
-                isPrimary -> Color.argb(246, 233, 241, 255)
-                else -> Color.argb(246, 255, 255, 255)
+                isPrimary -> Color.argb(150, 233, 241, 255)
+                else -> Color.argb(150, 255, 255, 255)
             },
             stroke = when {
                 isDanger -> Color.rgb(247, 139, 145)
-                isPrimary -> Color.argb(210, 197, 215, 255)
-                else -> Color.argb(190, 227, 232, 240)
+                isPrimary -> Color.argb(170, 197, 215, 255)
+                else -> Color.argb(150, 227, 232, 240)
             },
-            radius = context.dp(14).toFloat(),
+            radius = context.dp(999).toFloat(),
         )
 
     private fun roundedBackground(fill: Int, stroke: Int, radius: Float): GradientDrawable =
@@ -229,9 +216,9 @@ class CompactOverlay(
     }
 
     private fun OverlaySize.metrics(): OverlayMetrics = when (this) {
-        OverlaySize.Small -> OverlayMetrics(buttonSize = 58, buttonSpacing = 7, panelPaddingHorizontal = 7, panelPaddingVertical = 8)
-        OverlaySize.Medium -> OverlayMetrics(buttonSize = 68, buttonSpacing = 9, panelPaddingHorizontal = 9, panelPaddingVertical = 10)
-        OverlaySize.Large -> OverlayMetrics(buttonSize = 78, buttonSpacing = 10, panelPaddingHorizontal = 10, panelPaddingVertical = 12)
+        OverlaySize.Small -> OverlayMetrics(buttonSize = 44, buttonSpacing = 10, panelPaddingHorizontal = 8, panelPaddingVertical = 10)
+        OverlaySize.Medium -> OverlayMetrics(buttonSize = 52, buttonSpacing = 12, panelPaddingHorizontal = 10, panelPaddingVertical = 12)
+        OverlaySize.Large -> OverlayMetrics(buttonSize = 62, buttonSpacing = 14, panelPaddingHorizontal = 12, panelPaddingVertical = 14)
     }
 
     private data class OverlayMetrics(
@@ -251,31 +238,15 @@ class CompactOverlay(
 
     private class OverlayActionButton(
         context: Context,
-        label: String,
         iconType: OverlayIconType,
     ) : LinearLayout(context) {
         private val iconView = OverlayIconView(context, iconType)
-        private val labelView = TextView(context).apply {
-            text = label
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            textSize = 13f
-            maxLines = 1
-            setTextColor(Color.rgb(19, 23, 31))
-        }
 
         init {
             orientation = VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(4), dp(6), dp(4), dp(6))
-            addView(iconView, LayoutParams(dp(30), dp(28)))
-            addView(labelView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-                topMargin = dp(4)
-            })
-        }
-
-        fun setLabel(label: String) {
-            labelView.text = label
+            setPadding(dp(6), dp(6), dp(6), dp(6))
+            addView(iconView, LayoutParams(dp(30), dp(30)))
         }
 
         fun setIconType(iconType: OverlayIconType) {
@@ -310,8 +281,8 @@ class CompactOverlay(
             when (iconType) {
                 OverlayIconType.Play -> drawPlay(canvas)
                 OverlayIconType.Stop -> drawStop(canvas)
-                OverlayIconType.Next -> drawArrow(canvas, pointsRight = true)
-                OverlayIconType.Previous -> drawArrow(canvas, pointsRight = false)
+                OverlayIconType.Next -> drawArrow(canvas, pointsUp = true)
+                OverlayIconType.Previous -> drawArrow(canvas, pointsUp = false)
                 OverlayIconType.Settings -> drawSettings(canvas)
             }
         }
@@ -335,14 +306,14 @@ class CompactOverlay(
             )
         }
 
-        private fun drawArrow(canvas: Canvas, pointsRight: Boolean) {
-            val startX = if (pointsRight) width * 0.24f else width * 0.76f
-            val endX = if (pointsRight) width * 0.76f else width * 0.24f
-            val headX = endX
-            val headLeftX = if (pointsRight) width * 0.54f else width * 0.46f
-            canvas.drawLine(startX, height * 0.50f, endX, height * 0.50f, paint)
-            canvas.drawLine(headLeftX, height * 0.28f, headX, height * 0.50f, paint)
-            canvas.drawLine(headLeftX, height * 0.72f, headX, height * 0.50f, paint)
+        private fun drawArrow(canvas: Canvas, pointsUp: Boolean) {
+            val startY = if (pointsUp) height * 0.76f else height * 0.24f
+            val endY = if (pointsUp) height * 0.24f else height * 0.76f
+            val headY = endY
+            val headBackY = if (pointsUp) height * 0.46f else height * 0.54f
+            canvas.drawLine(width * 0.50f, startY, width * 0.50f, endY, paint)
+            canvas.drawLine(width * 0.28f, headBackY, width * 0.50f, headY, paint)
+            canvas.drawLine(width * 0.72f, headBackY, width * 0.50f, headY, paint)
         }
 
         private fun drawSettings(canvas: Canvas) {
