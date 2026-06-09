@@ -165,8 +165,8 @@ class CompactOverlay(
         roundedBackground(
             fill = when {
                 isDanger -> Color.rgb(218, 64, 72)
-                isPrimary -> Color.argb(150, 233, 241, 255)
-                else -> Color.argb(150, 255, 255, 255)
+                isPrimary -> Color.argb(26, 255, 255, 255)
+                else -> Color.argb(26, 255, 255, 255)
             },
             stroke = when {
                 isDanger -> Color.rgb(247, 139, 145)
@@ -189,9 +189,10 @@ class CompactOverlay(
 
     private fun updateButtonSizes(metrics: OverlayMetrics) {
         for (index in 0 until buttonsContainer.childCount) {
+            val size = if (index == 0) metrics.primaryButtonSize else metrics.buttonSize
             buttonsContainer.getChildAt(index).layoutParams = LinearLayout.LayoutParams(
-                rootContainer.context.dp(metrics.buttonSize),
-                rootContainer.context.dp(metrics.buttonSize),
+                rootContainer.context.dp(size),
+                rootContainer.context.dp(size),
             ).apply {
                 if (rootContainer.orientation == LinearLayout.VERTICAL) {
                     bottomMargin = rootContainer.context.dp(metrics.buttonSpacing)
@@ -209,19 +210,20 @@ class CompactOverlay(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply {
-                marginEnd = context.dp(6)
-                bottomMargin = context.dp(8)
+                marginEnd = 0
+                bottomMargin = 0
             },
         )
     }
 
     private fun OverlaySize.metrics(): OverlayMetrics = when (this) {
-        OverlaySize.Small -> OverlayMetrics(buttonSize = 44, buttonSpacing = 10, panelPaddingHorizontal = 8, panelPaddingVertical = 10)
-        OverlaySize.Medium -> OverlayMetrics(buttonSize = 52, buttonSpacing = 12, panelPaddingHorizontal = 10, panelPaddingVertical = 12)
-        OverlaySize.Large -> OverlayMetrics(buttonSize = 62, buttonSpacing = 14, panelPaddingHorizontal = 12, panelPaddingVertical = 14)
+        OverlaySize.Small -> OverlayMetrics(primaryButtonSize = 44, buttonSize = 36, buttonSpacing = 14, panelPaddingHorizontal = 10, panelPaddingVertical = 10)
+        OverlaySize.Medium -> OverlayMetrics(primaryButtonSize = 48, buttonSize = 40, buttonSpacing = 16, panelPaddingHorizontal = 12, panelPaddingVertical = 12)
+        OverlaySize.Large -> OverlayMetrics(primaryButtonSize = 56, buttonSize = 48, buttonSpacing = 18, panelPaddingHorizontal = 14, panelPaddingVertical = 14)
     }
 
     private data class OverlayMetrics(
+        val primaryButtonSize: Int,
         val buttonSize: Int,
         val buttonSpacing: Int,
         val panelPaddingHorizontal: Int,
@@ -245,8 +247,8 @@ class CompactOverlay(
         init {
             orientation = VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(6), dp(6), dp(6), dp(6))
-            addView(iconView, LayoutParams(dp(30), dp(30)))
+            setPadding(0, 0, 0, 0)
+            addView(iconView, LayoutParams(dp(24), dp(24)))
         }
 
         fun setIconType(iconType: OverlayIconType) {
@@ -337,12 +339,12 @@ class CompactOverlay(
         }
 
         init {
-            minimumWidth = dp(42)
-            minimumHeight = dp(22)
+            minimumWidth = dp(24)
+            minimumHeight = dp(24)
         }
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            setMeasuredDimension(dp(42), dp(22))
+            setMeasuredDimension(dp(24), dp(24))
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -350,11 +352,11 @@ class CompactOverlay(
             val radius = dp(2.0f)
             val centerX = width / 2f
             val centerY = height / 2f
-            val gapX = dp(7f)
-            val gapY = dp(6f)
-            for (column in -1..1) {
-                for (row in -1..1 step 2) {
-                    canvas.drawCircle(centerX + column * gapX, centerY + row * gapY / 2f, radius, paint)
+            val gapX = dp(4f)
+            val gapY = dp(8f)
+            for (column in -1..1 step 2) {
+                for (row in -1..1) {
+                    canvas.drawCircle(centerX + column * gapX / 2f, centerY + row * gapY / 2f, radius, paint)
                 }
             }
         }
