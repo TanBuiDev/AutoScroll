@@ -1,0 +1,3 @@
+[submodule "references/ui-prototype"]
+	path = references/ui-prototype
+	url = https://github.com/TanBuiDev/AutoScroll-v1.git
