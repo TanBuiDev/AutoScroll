@@ -1,18 +1,24 @@
 package com.personal.autoscroll.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +33,6 @@ import com.personal.autoscroll.ui.advanced.AdvancedScreen
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
 import com.personal.autoscroll.ui.currentapp.CurrentAppScreen
 import com.personal.autoscroll.ui.currentapp.CurrentAppViewModel
-import com.personal.autoscroll.ui.foundation.AppScreen
 import com.personal.autoscroll.ui.gesture.GestureScreen
 import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsScreen
 import com.personal.autoscroll.ui.profiles.ProfilesScreen
@@ -45,6 +50,7 @@ enum class AppDestination(
     Advanced(R.string.nav_advanced),
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     profilesViewModel: ProfilesViewModel,
@@ -61,74 +67,69 @@ fun AppNavigation(
             .background(MaterialTheme.colorScheme.background),
         color = MaterialTheme.colorScheme.background,
     ) {
-        AppScreen {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                text = stringResource(R.string.app_tagline),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                AppDestination.entries.forEach { item ->
-                    DestinationButton(
-                        label = stringResource(item.labelRes),
-                        selected = item == destination,
-                        onClick = { destination = item },
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing,
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                Column {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.app_name),
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                                Text(
+                                    text = stringResource(R.string.app_tagline),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        ),
                     )
+                    ScrollableTabRow(
+                        selectedTabIndex = destination.ordinal,
+                        edgePadding = 12.dp,
+                        containerColor = MaterialTheme.colorScheme.background,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ) {
+                        AppDestination.entries.forEach { item ->
+                            Tab(
+                                selected = item == destination,
+                                onClick = { destination = item },
+                                text = { Text(stringResource(item.labelRes), maxLines = 1) },
+                            )
+                        }
+                    }
+                }
+            },
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    when (destination) {
+                        AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
+                        AppDestination.CurrentApp -> CurrentAppScreen(
+                            viewModel = currentAppViewModel,
+                            onShowOverlay = onShowOverlay,
+                            onHideOverlay = onHideOverlay,
+                        )
+                        AppDestination.Gesture -> GestureScreen()
+                        AppDestination.Timing -> TimingScreen()
+                        AppDestination.Overlay -> OverlaySettingsScreen()
+                        AppDestination.Advanced -> AdvancedScreen(advancedViewModel)
+                    }
                 }
             }
-
-            when (destination) {
-                AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
-                AppDestination.CurrentApp -> CurrentAppScreen(
-                    viewModel = currentAppViewModel,
-                    onShowOverlay = onShowOverlay,
-                    onHideOverlay = onHideOverlay,
-                )
-                AppDestination.Gesture -> GestureScreen()
-                AppDestination.Timing -> TimingScreen()
-                AppDestination.Overlay -> OverlaySettingsScreen()
-                AppDestination.Advanced -> AdvancedScreen(advancedViewModel)
-            }
         }
-    }
-}
-
-@Composable
-private fun DestinationButton(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    OutlinedButton(
-        onClick = onClick,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
-        ),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.surfaceVariant
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-    ) {
-        Text(label)
     }
 }
