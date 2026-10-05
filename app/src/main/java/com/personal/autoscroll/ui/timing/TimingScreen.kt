@@ -26,7 +26,13 @@ import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun TimingScreen(showTitle: Boolean = true) {
+fun TimingScreen(
+    showTitle: Boolean = true,
+    onModeChanged: (ScrollMode) -> Unit = {},
+    onDelayChanged: (Long) -> Unit = {},
+    onRepeatCountChanged: (Int) -> Unit = {},
+    onDurationChanged: (Long) -> Unit = {},
+) {
     var mode by remember { mutableStateOf(ScrollMode.UntilStop) }
     var delaySeconds by remember { mutableFloatStateOf(6.5f) }
     var repeatCountText by remember { mutableStateOf("1") }
@@ -44,7 +50,10 @@ fun TimingScreen(showTitle: Boolean = true) {
             listOf(ScrollMode.Repeat, ScrollMode.UntilStop, ScrollMode.Timer).forEach {
                 FilterChip(
                     selected = it == mode,
-                    onClick = { mode = it },
+                    onClick = {
+                        mode = it
+                        onModeChanged(it)
+                    },
                     label = { Text(it.label(), maxLines = 2) },
                 )
             }
@@ -54,12 +63,22 @@ fun TimingScreen(showTitle: Boolean = true) {
             "${stringResource(R.string.label_delay)}: ${LocalizedFormatters.seconds(delaySeconds)}",
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Slider(value = delaySeconds, onValueChange = { delaySeconds = it }, valueRange = 0.5f..60f)
+        Slider(
+            value = delaySeconds,
+            onValueChange = {
+                delaySeconds = it
+                onDelayChanged((it * 1_000L).toLong())
+            },
+            valueRange = 0.5f..60f,
+        )
 
         if (mode == ScrollMode.Repeat) {
             OutlinedTextField(
                 value = repeatCountText,
-                onValueChange = { value -> repeatCountText = value.filter(Char::isDigit).take(4).ifEmpty { "1" } },
+                onValueChange = { value ->
+                    repeatCountText = value.filter(Char::isDigit).take(4).ifEmpty { "1" }
+                    onRepeatCountChanged(repeatCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1)
+                },
                 label = { Text(stringResource(R.string.label_repeat_count)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -69,7 +88,11 @@ fun TimingScreen(showTitle: Boolean = true) {
         if (mode == ScrollMode.Timer) {
             OutlinedTextField(
                 value = durationMinutesText,
-                onValueChange = { value -> durationMinutesText = value.filter(Char::isDigit).take(4).ifEmpty { "1" } },
+                onValueChange = { value ->
+                    durationMinutesText = value.filter(Char::isDigit).take(4).ifEmpty { "1" }
+                    val minutes = durationMinutesText.toLongOrNull()?.coerceAtLeast(1L) ?: 1L
+                    onDurationChanged(minutes * 60_000L)
+                },
                 label = { Text(stringResource(R.string.label_duration)) },
                 suffix = { Text(stringResource(R.string.minutes_unit)) },
                 singleLine = true,
