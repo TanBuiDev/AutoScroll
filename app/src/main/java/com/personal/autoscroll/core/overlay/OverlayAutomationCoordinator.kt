@@ -1,6 +1,8 @@
 package com.personal.autoscroll.core.overlay
 
+import android.content.Context
 import com.personal.autoscroll.core.accessibility.AutoScrollAccessibilityService
+import com.personal.autoscroll.core.accessibility.ForegroundAppObserver
 import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
 import com.personal.autoscroll.core.gesture.GestureMapper
@@ -12,16 +14,20 @@ import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.domain.model.applyGlobalSettings
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class OverlayAutomationCoordinator @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val overlayController: OverlayController,
     private val automationController: AutomationController,
     private val gestureMapper: GestureMapper,
+    private val foregroundAppObserver: ForegroundAppObserver,
 ) {
     private var profile: AppProfile = AppProfile.defaultForPackage(
         packageName = "manual.overlay",
@@ -29,6 +35,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         presetType = PresetType.VideoFeed,
     )
     private var stateJob: Job? = null
+    private var appChangeJob: Job? = null
     private var languageMode: LanguageMode = LanguageMode.System
     private var globalSettings: GlobalSettings = GlobalSettings.Default
 
@@ -67,6 +74,8 @@ class OverlayAutomationCoordinator @Inject constructor(
 
     fun hideOverlay() {
         automationController.stop()
+        appChangeJob?.cancel()
+        appChangeJob = null
         stateJob?.cancel()
         stateJob = null
         overlayController.hideAll()
@@ -143,6 +152,8 @@ class OverlayAutomationCoordinator @Inject constructor(
     private fun toggleAutomation(scope: CoroutineScope) {
         if (automationController.isRunning) {
             automationController.stop()
+            appChangeJob?.cancel()
+            appChangeJob = null
             overlayController.setRunning(false)
             return
         }
@@ -153,8 +164,35 @@ class OverlayAutomationCoordinator @Inject constructor(
         ) {
             dispatchGesture(profile)
         }
+        startAppChangeWatch(scope, profile)
         overlayController.setRunning(true)
         overlayController.collapseExpanded()
+    }
+
+    private fun startAppChangeWatch(scope: CoroutineScope, activeProfile: AppProfile) {
+        appChangeJob?.cancel()
+        appChangeJob = null
+        if (!activeProfile.timingConfig.stopOnAppChange || activeProfile.packageName == "manual.overlay") {
+            return
+        }
+
+        val targetPackage = activeProfile.packageName
+        appChangeJob = scope.launch {
+            foregroundAppObserver
+                .foregroundPackageExcluding(context.packageName)
+                .collectLatest { foregroundPackage ->
+                    if (
+                        automationController.isRunning &&
+                        foregroundPackage != null &&
+                        foregroundPackage != targetPackage
+                    ) {
+                        automationController.stop()
+                        overlayController.setRunning(false)
+                        appChangeJob = null
+                        cancel()
+                    }
+                }
+        }
     }
 
     private fun runManualGesture(scope: CoroutineScope, direction: IntentDirection) {
