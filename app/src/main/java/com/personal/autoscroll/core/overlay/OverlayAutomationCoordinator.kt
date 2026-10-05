@@ -30,6 +30,17 @@ class OverlayAutomationCoordinator @Inject constructor(
     )
     private var stateJob: Job? = null
     private var languageMode: LanguageMode = LanguageMode.System
+    private var globalSettings: GlobalSettings = GlobalSettings.Default
+
+    fun updateActiveProfile(activeProfile: AppProfile?) {
+        if (activeProfile == null) return
+        profile = activeProfile.copy(
+            overlayConfig = activeProfile.overlayConfig.applyGlobalSettings(globalSettings),
+        )
+        overlayController.updateCompact(profile.overlayConfig)
+        overlayController.updateGestureAxis(profile.gestureConfig.axis)
+        overlayController.updateExpanded(profile)
+    }
 
     fun showOverlay(scope: CoroutineScope, languageMode: LanguageMode) {
         this.languageMode = languageMode
@@ -62,6 +73,7 @@ class OverlayAutomationCoordinator @Inject constructor(
     }
 
     fun applyGlobalSettings(settings: GlobalSettings) {
+        globalSettings = settings
         profile = profile.copy(
             overlayConfig = profile.overlayConfig.applyGlobalSettings(settings),
         )
