@@ -43,4 +43,6 @@ fun OverlayConfig.applyGlobalSettings(settings: GlobalSettings): OverlayConfig =
         size = settings.overlaySize,
         compactPositionX = settings.compactPositionX,
         compactPositionY = settings.compactPositionY,
+        showNextPrevious = settings.showNextPrevious,
+        autoCollapse = settings.autoCollapse,
     )
