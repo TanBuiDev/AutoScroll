@@ -13,9 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,8 +33,6 @@ import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 @Composable
 fun OverlaySettingsScreen(viewModel: OverlaySettingsViewModel, showTitle: Boolean = true) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    var showNextPrevious by remember { mutableStateOf(true) }
-    var autoCollapse by remember { mutableStateOf(true) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (showTitle) {
@@ -67,8 +62,16 @@ fun OverlaySettingsScreen(viewModel: OverlaySettingsViewModel, showTitle: Boolea
             }
         }
 
-        ToggleLine(stringResource(R.string.overlay_show_next_previous), showNextPrevious) { showNextPrevious = it }
-        ToggleLine(stringResource(R.string.overlay_auto_collapse), autoCollapse) { autoCollapse = it }
+        ToggleLine(
+            stringResource(R.string.overlay_show_next_previous),
+            settings.showNextPrevious,
+            viewModel::updateShowNextPrevious,
+        )
+        ToggleLine(
+            stringResource(R.string.overlay_auto_collapse),
+            settings.autoCollapse,
+            viewModel::updateAutoCollapse,
+        )
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -100,6 +103,18 @@ class OverlaySettingsViewModel @Inject constructor(
     fun updateOverlaySize(size: OverlaySize) {
         viewModelScope.launch {
             settingsDataStore.updateOverlaySize(size)
+        }
+    }
+
+    fun updateShowNextPrevious(show: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateShowNextPrevious(show)
+        }
+    }
+
+    fun updateAutoCollapse(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateAutoCollapse(enabled)
         }
     }
 }
