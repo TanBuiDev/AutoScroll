@@ -23,7 +23,7 @@ class AutomationController @Inject constructor(
     fun start(
         scope: CoroutineScope,
         timingConfig: TimingConfig,
-        performGesture: suspend () -> Unit,
+        performGesture: suspend () -> Boolean,
     ) {
         stop()
         var completed = 0
@@ -31,9 +31,12 @@ class AutomationController @Inject constructor(
             _state.value = AutomationState.Running(completedGestures = completed)
             try {
                 automationRunner.run(timingConfig) {
-                    performGesture()
-                    completed += 1
-                    _state.value = AutomationState.Running(completedGestures = completed)
+                    val succeeded = performGesture()
+                    if (succeeded) {
+                        completed += 1
+                        _state.value = AutomationState.Running(completedGestures = completed)
+                    }
+                    succeeded
                 }
             } finally {
                 _state.value = AutomationState.Idle
