@@ -111,7 +111,15 @@ class OverlayAutomationCoordinator @Inject constructor(
     }
 
     fun updateScrollMode(mode: ScrollMode) {
-        updateProfile { copy(timingConfig = timingConfig.copy(mode = mode)) }
+        updateProfile {
+            copy(
+                timingConfig = timingConfig.copy(
+                    mode = mode,
+                    repeatCount = if (mode == ScrollMode.Repeat) timingConfig.repeatCount ?: 1 else timingConfig.repeatCount,
+                    durationMillis = if (mode == ScrollMode.Timer) timingConfig.durationMillis ?: 30L * 60_000L else timingConfig.durationMillis,
+                ),
+            )
+        }
     }
 
     fun updateDelayMillis(delayMillis: Long) {
