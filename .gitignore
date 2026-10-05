@@ -12,6 +12,9 @@ build/
 
 # Local machine config
 local.properties
+keystore.properties
+*.jks
+*.keystore
 
 # Generated files
 captures/
