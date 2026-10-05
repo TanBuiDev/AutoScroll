@@ -11,9 +11,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,10 +30,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AdvancedScreen(viewModel: AdvancedViewModel, showTitle: Boolean = true) {
-    var screenshot by remember { mutableStateOf(false) }
-    var recording by remember { mutableStateOf(false) }
-    var audio by remember { mutableStateOf(false) }
-    var boot by remember { mutableStateOf(false) }
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val languageMode by viewModel.languageMode.collectAsStateWithLifecycle()
 
@@ -72,10 +65,15 @@ fun AdvancedScreen(viewModel: AdvancedViewModel, showTitle: Boolean = true) {
                 )
             }
         }
-        ToggleLine(stringResource(R.string.advanced_screenshot), screenshot) { screenshot = it }
-        ToggleLine(stringResource(R.string.advanced_recording), recording) { recording = it }
-        ToggleLine(stringResource(R.string.advanced_audio), audio) { audio = it }
-        ToggleLine(stringResource(R.string.advanced_boot), boot) { boot = it }
+        ToggleLine(stringResource(R.string.advanced_screenshot))
+        ToggleLine(stringResource(R.string.advanced_recording))
+        ToggleLine(stringResource(R.string.advanced_audio))
+        ToggleLine(stringResource(R.string.advanced_boot))
+        Text(
+            text = stringResource(R.string.advanced_unavailable_note),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -113,9 +111,9 @@ class AdvancedViewModel @Inject constructor(
 }
 
 @Composable
-private fun ToggleLine(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun ToggleLine(label: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = false, onCheckedChange = null, enabled = false)
         Text(label, color = MaterialTheme.colorScheme.onSurface, maxLines = 2)
     }
 }
