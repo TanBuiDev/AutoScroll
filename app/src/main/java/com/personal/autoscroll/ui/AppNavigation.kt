@@ -64,6 +64,10 @@ fun AppNavigation(
     onSwipeDurationChanged: (Long) -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
+    onScrollModeChanged: (com.personal.autoscroll.domain.model.ScrollMode) -> Unit = {},
+    onDelayChanged: (Long) -> Unit = {},
+    onRepeatCountChanged: (Int) -> Unit = {},
+    onDurationChanged: (Long) -> Unit = {},
 ) {
     var destination by remember { mutableStateOf(AppDestination.CurrentApp) }
 
@@ -133,6 +137,10 @@ fun AppNavigation(
                             onIntentDirectionChanged = onIntentDirectionChanged,
                             onGestureDistanceChanged = onGestureDistanceChanged,
                             onSwipeDurationChanged = onSwipeDurationChanged,
+                            onScrollModeChanged = onScrollModeChanged,
+                            onDelayChanged = onDelayChanged,
+                            onRepeatCountChanged = onRepeatCountChanged,
+                            onDurationChanged = onDurationChanged,
                         )
                         AppDestination.Overlay -> OverlayScreen(
                             overlaySettingsViewModel = overlaySettingsViewModel,
@@ -151,6 +159,10 @@ private fun AutomationScreen(
     onIntentDirectionChanged: (IntentDirection) -> Unit,
     onGestureDistanceChanged: (Int) -> Unit,
     onSwipeDurationChanged: (Long) -> Unit,
+    onScrollModeChanged: (com.personal.autoscroll.domain.model.ScrollMode) -> Unit,
+    onDelayChanged: (Long) -> Unit,
+    onRepeatCountChanged: (Int) -> Unit,
+    onDurationChanged: (Long) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
@@ -165,7 +177,13 @@ private fun AutomationScreen(
             onGestureDistanceChanged = onGestureDistanceChanged,
             onSwipeDurationChanged = onSwipeDurationChanged,
         )
-        TimingScreen(showTitle = true)
+        TimingScreen(
+            showTitle = true,
+            onModeChanged = onScrollModeChanged,
+            onDelayChanged = onDelayChanged,
+            onRepeatCountChanged = onRepeatCountChanged,
+            onDurationChanged = onDurationChanged,
+        )
     }
 }
 
