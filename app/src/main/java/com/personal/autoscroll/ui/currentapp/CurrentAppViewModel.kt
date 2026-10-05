@@ -9,7 +9,6 @@ import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.core.permissions.PermissionState
 import com.personal.autoscroll.core.profile.ActiveProfileController
 import com.personal.autoscroll.domain.model.AppProfile
-import com.personal.autoscroll.domain.model.ProfileStatus
 import com.personal.autoscroll.domain.usecase.RunTestGesture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -26,6 +25,7 @@ data class CurrentAppUiState(
     val foregroundAppName: String? = null,
     val profile: AppProfile? = null,
     val profilePersisted: Boolean = false,
+    val profileDirty: Boolean = false,
     val permissionState: PermissionState = PermissionState(
         accessibilityEnabled = false,
         accessibilityConnected = false,
@@ -44,6 +44,7 @@ private data class ActiveProfileSnapshot(
     val packageName: String?,
     val profile: AppProfile?,
     val persisted: Boolean,
+    val dirty: Boolean,
 )
 
 @HiltViewModel
@@ -59,11 +60,13 @@ class CurrentAppViewModel @Inject constructor(
         activeProfileController.foregroundPackage,
         activeProfileController.activeProfile,
         activeProfileController.isPersisted,
-    ) { packageName, profile, persisted ->
+        activeProfileController.isDirty,
+    ) { packageName, profile, persisted, dirty ->
         ActiveProfileSnapshot(
             packageName = packageName,
             profile = profile,
             persisted = persisted,
+            dirty = dirty,
         )
     }
 
@@ -79,6 +82,7 @@ class CurrentAppViewModel @Inject constructor(
             foregroundAppName = active.profile?.appName,
             profile = active.profile,
             profilePersisted = active.persisted,
+            profileDirty = active.dirty,
             permissionState = PermissionState(
                 accessibilityEnabled = accessibilityEnabled,
                 accessibilityConnected = serviceConnected || accessibilityEnabled,
@@ -99,6 +103,9 @@ class CurrentAppViewModel @Inject constructor(
         val profile = uiState.value.profile ?: return
         viewModelScope.launch {
             val succeeded = runTestGesture(profile)
+            if (succeeded) {
+                activeProfileController.markActiveProfileTested()
+            }
             manualState.update {
                 it.copy(
                     lastTestSucceeded = succeeded,
@@ -113,11 +120,9 @@ class CurrentAppViewModel @Inject constructor(
     }
 
     fun saveProfile() {
-        val profile = uiState.value.profile ?: return
+        if (uiState.value.profile == null) return
         viewModelScope.launch {
-            val saved = activeProfileController.saveActiveProfile(
-                profileStatus = ProfileStatus.Tested,
-            ) ?: return@launch
+            val saved = activeProfileController.saveActiveProfile() ?: return@launch
             manualState.update {
                 it.copy(
                     message = CurrentAppMessage(
