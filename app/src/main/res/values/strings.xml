@@ -103,4 +103,30 @@
     <string name="preview_swipe_down">Swipe down for previous item</string>
     <string name="preview_swipe_left">Swipe left for next item</string>
     <string name="preview_swipe_right">Swipe right for previous item</string>
+
+    <string name="label_start_delay">Start delay</string>
+    <string name="label_preset">Preset</string>
+    <string name="profile_enabled">Profile enabled</string>
+    <string name="profile_unsaved_changes">Unsaved changes</string>
+    <string name="profile_not_saved">This profile has not been saved yet</string>
+    <string name="automation_no_active_profile">Open a target app once so Auto Scroll can select its active profile.</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_reset">Reset</string>
+    <string name="preset_video_feed">Video feed</string>
+    <string name="preset_reading">Reading</string>
+    <string name="preset_webtoon">Webtoon</string>
+    <string name="preset_horizontal_feed">Horizontal feed</string>
+    <string name="preset_custom">Custom</string>
+    <string name="gesture_start_x">Start X: %1$d%%</string>
+    <string name="gesture_start_y">Start Y: %1$d%%</string>
+    <string name="gesture_invert_direction">Invert physical swipe direction</string>
+    <string name="timing_stop_on_app_change">Stop when the foreground app changes</string>
+    <string name="profile_editing">Editing %1$s</string>
+    <string name="profile_delete_title">Delete profile?</string>
+    <string name="profile_delete_message">Delete the saved profile for %1$s?</string>
+    <string name="profile_reset_title">Reset profile?</string>
+    <string name="profile_reset_message">Reset %1$s to the default Video Feed preset?</string>
 </resources>
