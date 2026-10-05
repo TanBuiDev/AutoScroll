@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.personal.autoscroll.data.db.AppProfileDao
 import com.personal.autoscroll.data.db.AutoScrollDatabase
+import com.personal.autoscroll.data.db.MIGRATION_1_2
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,7 +23,7 @@ object DatabaseModule {
         context,
         AutoScrollDatabase::class.java,
         "auto_scroll.db",
-    ).build()
+    ).addMigrations(MIGRATION_1_2).build()
 
     @Provides
     fun provideAppProfileDao(database: AutoScrollDatabase): AppProfileDao =
