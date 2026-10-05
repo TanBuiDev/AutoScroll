@@ -25,6 +25,11 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 class SettingsDataStore @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
+    val accessibilityDisclosureAccepted: Flow<Boolean> =
+        context.settingsDataStore.data.map { preferences ->
+            preferences[ACCESSIBILITY_DISCLOSURE_VERSION] == CURRENT_ACCESSIBILITY_DISCLOSURE_VERSION
+        }
+
     val settings: Flow<GlobalSettings> = context.settingsDataStore.data.map { preferences ->
         GlobalSettings(
             overlayOpacity = preferences[OVERLAY_OPACITY] ?: GlobalSettings.Default.overlayOpacity,
@@ -90,7 +95,14 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
+    suspend fun acceptAccessibilityDisclosure() {
+        context.settingsDataStore.edit { preferences ->
+            preferences[ACCESSIBILITY_DISCLOSURE_VERSION] = CURRENT_ACCESSIBILITY_DISCLOSURE_VERSION
+        }
+    }
+
     private companion object {
+        const val CURRENT_ACCESSIBILITY_DISCLOSURE_VERSION = 1
         val OVERLAY_OPACITY = floatPreferencesKey("overlay_opacity")
         val OVERLAY_SIZE = stringPreferencesKey("overlay_size")
         val COMPACT_POSITION_X = intPreferencesKey("compact_position_x")
@@ -99,5 +111,6 @@ class SettingsDataStore @Inject constructor(
         val AUTO_COLLAPSE = booleanPreferencesKey("auto_collapse")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val LANGUAGE_MODE = stringPreferencesKey("language_mode")
+        val ACCESSIBILITY_DISCLOSURE_VERSION = intPreferencesKey("accessibility_disclosure_version")
     }
 }
