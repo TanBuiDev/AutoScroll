@@ -6,27 +6,44 @@ import android.graphics.Path
 import com.personal.autoscroll.core.gesture.GesturePlan
 import com.personal.autoscroll.core.gesture.toGesturePath
 import kotlin.coroutines.resume
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 class GestureDispatcher(
     private val service: AccessibilityService,
 ) {
-    suspend fun dispatch(plan: GesturePlan): Boolean = suspendCancellableCoroutine { continuation ->
-        val gesture = plan.toGestureDescription()
-        service.dispatchGesture(
-            gesture,
-            object : AccessibilityService.GestureResultCallback() {
-                override fun onCompleted(gestureDescription: GestureDescription) {
-                    continuation.resume(true)
-                }
+    private val dispatchMutex = Mutex()
 
-                override fun onCancelled(gestureDescription: GestureDescription) {
-                    continuation.resume(false)
-                }
-            },
-            null,
-        )
-    }
+    suspend fun dispatch(plan: GesturePlan): Boolean =
+        dispatchMutex.withLock {
+            dispatchUnlocked(plan)
+        }
+
+    private suspend fun dispatchUnlocked(plan: GesturePlan): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            val gesture = plan.toGestureDescription()
+            val accepted = service.dispatchGesture(
+                gesture,
+                object : AccessibilityService.GestureResultCallback() {
+                    override fun onCompleted(gestureDescription: GestureDescription) {
+                        if (continuation.isActive) {
+                            continuation.resume(true)
+                        }
+                    }
+
+                    override fun onCancelled(gestureDescription: GestureDescription) {
+                        if (continuation.isActive) {
+                            continuation.resume(false)
+                        }
+                    }
+                },
+                null,
+            )
+            if (!accepted && continuation.isActive) {
+                continuation.resume(false)
+            }
+        }
 
     private fun GesturePlan.toGestureDescription(): GestureDescription {
         val displayMetrics = service.resources.displayMetrics
