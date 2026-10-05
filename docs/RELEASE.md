@@ -121,6 +121,8 @@ Before a Play release, review:
 - docs/SIGNING.md
 - docs/PLAY_CONSOLE_SUBMISSION.md
 
+Before Play submission, enable GitHub Pages with **GitHub Actions** as the source and run **Deploy Policy Pages** so the public Privacy Policy URL is live.
+
 Use the manual **Build Signed Play Bundle** workflow only after GitHub upload-signing secrets are configured.
 
 ## Release metadata
