@@ -5,6 +5,8 @@ data class GlobalSettings(
     val overlaySize: OverlaySize,
     val compactPositionX: Int,
     val compactPositionY: Int,
+    val showNextPrevious: Boolean,
+    val autoCollapse: Boolean,
     val themeMode: ThemeMode,
     val languageMode: LanguageMode,
 ) {
@@ -14,6 +16,8 @@ data class GlobalSettings(
             overlaySize = OverlaySize.Medium,
             compactPositionX = 24,
             compactPositionY = 240,
+            showNextPrevious = true,
+            autoCollapse = true,
             themeMode = ThemeMode.System,
             languageMode = LanguageMode.System,
         )
