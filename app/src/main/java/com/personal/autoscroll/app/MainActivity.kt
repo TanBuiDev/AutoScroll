@@ -78,10 +78,6 @@ class MainActivity : ComponentActivity() {
         currentAppViewModel.refreshPermissions()
     }
 
-    override fun onDestroy() {
-        viewModel.hideOverlay()
-        super.onDestroy()
-    }
 }
 
 @Composable
@@ -177,7 +173,6 @@ class MainViewModel @Inject constructor(
 
     fun showOverlay() {
         overlayAutomationCoordinator.showOverlay(
-            scope = viewModelScope,
             languageMode = settings.value.languageMode,
         )
     }
