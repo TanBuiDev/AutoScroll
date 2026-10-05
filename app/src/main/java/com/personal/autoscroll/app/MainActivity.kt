@@ -34,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @AndroidEntryPoint
@@ -135,8 +136,15 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GlobalSettings.Default,
     )
+    private val accessibilityConsentAccepted = settingsDataStore.accessibilityDisclosureAccepted
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false,
+        )
 
     fun showOverlay() {
+        if (!accessibilityConsentAccepted.value) return
         overlayAutomationCoordinator.showOverlay(
             languageMode = settings.value.languageMode,
         )
