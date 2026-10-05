@@ -9,11 +9,6 @@ permissions:
 jobs:
   signed-play-bundle:
     runs-on: ubuntu-latest
-    env:
-      AUTOSCROLL_UPLOAD_STORE_FILE: ${{ runner.temp }}/autoscroll-upload.jks
-      AUTOSCROLL_UPLOAD_STORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_STORE_PASSWORD }}
-      AUTOSCROLL_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
-      AUTOSCROLL_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -43,6 +38,9 @@ jobs:
         shell: bash
         env:
           PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          AUTOSCROLL_UPLOAD_STORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_STORE_PASSWORD }}
+          AUTOSCROLL_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          AUTOSCROLL_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
         run: |
           test -n "$PLAY_UPLOAD_KEYSTORE_BASE64"
           test -n "$AUTOSCROLL_UPLOAD_STORE_PASSWORD"
@@ -54,10 +52,15 @@ jobs:
         env:
           PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
         run: |
-          printf '%s' "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$AUTOSCROLL_UPLOAD_STORE_FILE"
-          chmod 600 "$AUTOSCROLL_UPLOAD_STORE_FILE"
+          printf '%s' "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "${RUNNER_TEMP}/autoscroll-upload.jks"
+          chmod 600 "${RUNNER_TEMP}/autoscroll-upload.jks"
 
       - name: Test, lint and build signed AAB
+        env:
+          AUTOSCROLL_UPLOAD_STORE_FILE: ${{ runner.temp }}/autoscroll-upload.jks
+          AUTOSCROLL_UPLOAD_STORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_STORE_PASSWORD }}
+          AUTOSCROLL_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          AUTOSCROLL_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
         run: ./gradlew clean :app:testDebugUnitTest :app:lintDebug :app:bundleRelease
 
       - name: Verify AAB signature
