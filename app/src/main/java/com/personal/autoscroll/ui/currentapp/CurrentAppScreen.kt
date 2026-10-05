@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -59,7 +61,7 @@ fun CurrentAppScreen(
                     stringResource(R.string.value_required)
                 },
                 isReady = state.permissionState.accessibilityConnected,
-                onClick = viewModel::openAccessibilitySettings,
+                onClick = viewModel::requestAccessibilityAccess,
                 modifier = Modifier.weight(1f),
             )
             PermissionCard(
@@ -85,11 +87,23 @@ fun CurrentAppScreen(
         QuickActionsCard(
             onTest = viewModel::testGesture,
             onSave = viewModel::saveProfile,
-            onShowOverlay = onShowOverlay,
+            onShowOverlay = {
+                if (state.accessibilityConsentAccepted) {
+                    onShowOverlay()
+                } else {
+                    viewModel.showAccessibilityDisclosure()
+                }
+            },
             onHideOverlay = onHideOverlay,
-            testEnabled = state.profile != null && state.permissionState.accessibilityConnected,
+            testEnabled = state.accessibilityConsentAccepted &&
+                state.profile != null &&
+                state.permissionState.accessibilityConnected,
             saveEnabled = state.profile != null && state.profileDirty,
         )
+
+        TextButton(onClick = viewModel::showAccessibilityDisclosure) {
+            Text(stringResource(R.string.accessibility_disclosure_review))
+        }
 
         state.message?.let {
             Surface(
@@ -107,6 +121,74 @@ fun CurrentAppScreen(
         }
 
         Spacer(Modifier.height(8.dp))
+    }
+
+    if (state.showAccessibilityDisclosure) {
+        AccessibilityDisclosureDialog(
+            onDismiss = viewModel::dismissAccessibilityDisclosure,
+            onAccept = viewModel::acceptAccessibilityDisclosure,
+            onPrivacyPolicy = viewModel::openPrivacyPolicy,
+        )
+    }
+}
+
+@Composable
+private fun AccessibilityDisclosureDialog(
+    onDismiss: () -> Unit,
+    onAccept: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.accessibility_disclosure_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.accessibility_disclosure_intro),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                DisclosurePoint(stringResource(R.string.accessibility_disclosure_foreground))
+                DisclosurePoint(stringResource(R.string.accessibility_disclosure_no_content))
+                DisclosurePoint(stringResource(R.string.accessibility_disclosure_actions))
+                DisclosurePoint(stringResource(R.string.accessibility_disclosure_local))
+                Text(
+                    text = stringResource(R.string.accessibility_disclosure_choice),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = onPrivacyPolicy) {
+                    Text(stringResource(R.string.privacy_policy))
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onAccept) {
+                Text(stringResource(R.string.accessibility_disclosure_agree))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun DisclosurePoint(text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("•", color = MaterialTheme.colorScheme.primary)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 
