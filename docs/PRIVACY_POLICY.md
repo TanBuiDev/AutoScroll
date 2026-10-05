@@ -21,7 +21,7 @@ Auto Scroll processes the following information locally:
 - profile state and preset selection;
 - whether the current version of the Accessibility disclosure has been accepted.
 
-This information is stored on the user's device using Room and Android DataStore.
+This information is stored on the user's device using Room, Android DataStore, and a local app preference for the versioned Accessibility disclosure consent.
 
 ## AccessibilityService
 
