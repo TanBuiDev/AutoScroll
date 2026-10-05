@@ -110,6 +110,28 @@ class OverlayAutomationCoordinator @Inject constructor(
         overlayController.updateExpanded(profile)
     }
 
+    fun updateScrollMode(mode: ScrollMode) {
+        updateProfile { copy(timingConfig = timingConfig.copy(mode = mode)) }
+    }
+
+    fun updateDelayMillis(delayMillis: Long) {
+        updateProfile {
+            copy(timingConfig = timingConfig.copy(delayMillis = delayMillis.coerceAtLeast(500L)))
+        }
+    }
+
+    fun updateRepeatCount(repeatCount: Int) {
+        updateProfile {
+            copy(timingConfig = timingConfig.copy(repeatCount = repeatCount.coerceAtLeast(1)))
+        }
+    }
+
+    fun updateDurationMillis(durationMillis: Long) {
+        updateProfile {
+            copy(timingConfig = timingConfig.copy(durationMillis = durationMillis.coerceAtLeast(1_000L)))
+        }
+    }
+
     private fun toggleAutomation(scope: CoroutineScope) {
         if (automationController.isRunning) {
             automationController.stop()
