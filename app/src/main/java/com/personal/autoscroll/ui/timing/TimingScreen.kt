@@ -55,7 +55,7 @@ fun TimingScreen(
         }
 
         Text(
-            "\${stringResource(R.string.label_delay)}: \${LocalizedFormatters.seconds(config.delayMillis)}",
+            stringResource(R.string.label_delay) + ": " + LocalizedFormatters.seconds(config.delayMillis),
             color = MaterialTheme.colorScheme.onSurface,
         )
         Slider(
@@ -65,7 +65,7 @@ fun TimingScreen(
         )
 
         Text(
-            "\${stringResource(R.string.label_start_delay)}: \${LocalizedFormatters.seconds(config.startDelayMillis)}",
+            stringResource(R.string.label_start_delay) + ": " + LocalizedFormatters.seconds(config.startDelayMillis),
             color = MaterialTheme.colorScheme.onSurface,
         )
         Slider(
