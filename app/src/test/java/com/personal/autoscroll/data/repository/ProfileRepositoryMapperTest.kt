@@ -32,5 +32,6 @@ class ProfileRepositoryMapperTest {
         assertEquals(profile.gestureConfig.swipeDurationMillis, restored.gestureConfig.swipeDurationMillis)
         assertEquals(profile.timingConfig.delayMillis, restored.timingConfig.delayMillis)
         assertEquals(profile.overlayConfig.opacity, restored.overlayConfig.opacity, 0.001f)
+        assertEquals(profile.overlayConfig.orientation, restored.overlayConfig.orientation)
     }
 }
