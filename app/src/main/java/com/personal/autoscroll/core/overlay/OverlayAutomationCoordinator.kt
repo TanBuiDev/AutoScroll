@@ -13,6 +13,7 @@ import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ScrollMode
+import com.personal.autoscroll.domain.model.TimingConfig
 import com.personal.autoscroll.domain.model.applyGlobalSettings
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,10 +45,23 @@ class OverlayAutomationCoordinator @Inject constructor(
     private var appChangeJob: Job? = null
     private var languageMode: LanguageMode = LanguageMode.System
     private var globalSettings: GlobalSettings = GlobalSettings.Default
+    private var runningPackageName: String? = null
+    private var runningTimingConfig: TimingConfig? = null
 
     init {
         scope.launch {
-            activeProfileController.activeProfile.collectLatest {
+            activeProfileController.activeProfile.collectLatest { profile ->
+                if (
+                    profile != null &&
+                    automationController.isRunning &&
+                    runningPackageName == profile.packageName
+                ) {
+                    when {
+                        !profile.enabled -> stopAutomation()
+                        runningTimingConfig != null && runningTimingConfig != profile.timingConfig ->
+                            restartAutomation(profile)
+                    }
+                }
                 refreshOverlays(currentEffectiveProfile())
             }
         }
@@ -81,15 +95,20 @@ class OverlayAutomationCoordinator @Inject constructor(
         stateJob?.cancel()
         stateJob = scope.launch {
             automationController.state.collectLatest { state ->
-                overlayController.setRunning(state is AutomationState.Running)
+                val running = state is AutomationState.Running
+                overlayController.setRunning(running)
+                if (!running && !automationController.isRunning) {
+                    appChangeJob?.cancel()
+                    appChangeJob = null
+                    runningPackageName = null
+                    runningTimingConfig = null
+                }
             }
         }
     }
 
     fun hideOverlay() {
-        automationController.stop()
-        appChangeJob?.cancel()
-        appChangeJob = null
+        stopAutomation()
         stateJob?.cancel()
         stateJob = null
         overlayController.hideAll()
@@ -140,12 +159,12 @@ class OverlayAutomationCoordinator @Inject constructor(
                     repeatCount = if (mode == ScrollMode.Repeat) {
                         timingConfig.repeatCount ?: 1
                     } else {
-                        timingConfig.repeatCount
+                        null
                     },
                     durationMillis = if (mode == ScrollMode.Timer) {
                         timingConfig.durationMillis ?: 30L * 60_000L
                     } else {
-                        timingConfig.durationMillis
+                        null
                     },
                 ),
             )
@@ -184,14 +203,23 @@ class OverlayAutomationCoordinator @Inject constructor(
 
     private fun toggleAutomation() {
         if (automationController.isRunning) {
-            automationController.stop()
-            appChangeJob?.cancel()
-            appChangeJob = null
-            overlayController.setRunning(false)
+            stopAutomation()
+            return
+        }
+        startAutomation(currentEffectiveProfile(), collapseOverlay = true)
+    }
+
+    private fun startAutomation(
+        profile: AppProfile,
+        collapseOverlay: Boolean,
+    ) {
+        if (!profile.enabled) {
+            stopAutomation()
             return
         }
 
-        val profile = currentEffectiveProfile()
+        runningPackageName = profile.packageName
+        runningTimingConfig = profile.timingConfig
         automationController.start(
             scope = scope,
             timingConfig = profile.timingConfig,
@@ -199,9 +227,27 @@ class OverlayAutomationCoordinator @Inject constructor(
         )
         startAppChangeWatch(profile)
         overlayController.setRunning(true)
-        if (profile.overlayConfig.autoCollapse) {
+        if (collapseOverlay && profile.overlayConfig.autoCollapse) {
             overlayController.collapseExpanded()
         }
+    }
+
+    private fun restartAutomation(profile: AppProfile) {
+        startAutomation(
+            profile = profile.copy(
+                overlayConfig = profile.overlayConfig.applyGlobalSettings(globalSettings),
+            ),
+            collapseOverlay = false,
+        )
+    }
+
+    private fun stopAutomation() {
+        automationController.stop()
+        appChangeJob?.cancel()
+        appChangeJob = null
+        runningPackageName = null
+        runningTimingConfig = null
+        overlayController.setRunning(false)
     }
 
     private fun startAppChangeWatch(profile: AppProfile) {
@@ -219,9 +265,7 @@ class OverlayAutomationCoordinator @Inject constructor(
                     foregroundPackage != null &&
                     foregroundPackage != targetPackage
                 ) {
-                    automationController.stop()
-                    overlayController.setRunning(false)
-                    appChangeJob = null
+                    stopAutomation()
                     cancel()
                 }
             }
@@ -229,8 +273,11 @@ class OverlayAutomationCoordinator @Inject constructor(
     }
 
     private fun runManualGesture(direction: IntentDirection) {
+        val profile = currentEffectiveProfile()
+        if (!profile.enabled) return
+
         scope.launch {
-            val gestureConfig = currentEffectiveProfile().gestureConfig.copy(
+            val gestureConfig = profile.gestureConfig.copy(
                 intentDirection = direction,
             )
             gestureExecutor.execute(gestureConfig)
@@ -271,6 +318,16 @@ class OverlayAutomationCoordinator @Inject constructor(
                     overlayController.collapseExpanded()
                 },
             ),
+            onPositionChanged = { x, y ->
+                updateProfile {
+                    copy(
+                        overlayConfig = overlayConfig.copy(
+                            expandedPositionX = x,
+                            expandedPositionY = y,
+                        ),
+                    )
+                }
+            },
         )
     }
 
@@ -278,11 +335,19 @@ class OverlayAutomationCoordinator @Inject constructor(
         val activeProfile = activeProfileController.activeProfile.value
         val baseProfile = activeProfile ?: manualProfile
         val updated = normalizeProfile(baseProfile.transform())
+        val timingChanged = baseProfile.timingConfig != updated.timingConfig
 
         if (activeProfile != null) {
             activeProfileController.updateActiveProfile { updated }
         } else {
             manualProfile = updated
+            if (
+                timingChanged &&
+                automationController.isRunning &&
+                runningPackageName == MANUAL_PACKAGE
+            ) {
+                restartAutomation(updated)
+            }
         }
 
         refreshOverlays(currentEffectiveProfile())

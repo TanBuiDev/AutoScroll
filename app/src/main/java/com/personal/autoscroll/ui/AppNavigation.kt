@@ -1,9 +1,10 @@
 package com.personal.autoscroll.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,20 +28,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.annotation.StringRes
 import com.personal.autoscroll.R
-import com.personal.autoscroll.domain.model.GestureAxis
-import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.ui.advanced.AdvancedScreen
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
+import com.personal.autoscroll.ui.automation.AutomationScreen
+import com.personal.autoscroll.ui.automation.AutomationViewModel
 import com.personal.autoscroll.ui.currentapp.CurrentAppScreen
 import com.personal.autoscroll.ui.currentapp.CurrentAppViewModel
-import com.personal.autoscroll.ui.gesture.GestureScreen
 import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsScreen
 import com.personal.autoscroll.ui.overlaysettings.OverlaySettingsViewModel
 import com.personal.autoscroll.ui.profiles.ProfilesScreen
 import com.personal.autoscroll.ui.profiles.ProfilesViewModel
-import com.personal.autoscroll.ui.timing.TimingScreen
 
 enum class AppDestination(
     @param:StringRes val labelRes: Int,
@@ -56,18 +54,11 @@ enum class AppDestination(
 fun AppNavigation(
     profilesViewModel: ProfilesViewModel,
     currentAppViewModel: CurrentAppViewModel,
+    automationViewModel: AutomationViewModel,
     advancedViewModel: AdvancedViewModel,
     overlaySettingsViewModel: OverlaySettingsViewModel,
-    onGestureAxisChanged: (GestureAxis) -> Unit,
-    onIntentDirectionChanged: (IntentDirection) -> Unit,
-    onGestureDistanceChanged: (Int) -> Unit,
-    onSwipeDurationChanged: (Long) -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
-    onScrollModeChanged: (com.personal.autoscroll.domain.model.ScrollMode) -> Unit = {},
-    onDelayChanged: (Long) -> Unit = {},
-    onRepeatCountChanged: (Int) -> Unit = {},
-    onDurationChanged: (Long) -> Unit = {},
 ) {
     var destination by remember { mutableStateOf(AppDestination.CurrentApp) }
 
@@ -132,16 +123,7 @@ fun AppNavigation(
                             onHideOverlay = onHideOverlay,
                         )
                         AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
-                        AppDestination.Automation -> AutomationScreen(
-                            onGestureAxisChanged = onGestureAxisChanged,
-                            onIntentDirectionChanged = onIntentDirectionChanged,
-                            onGestureDistanceChanged = onGestureDistanceChanged,
-                            onSwipeDurationChanged = onSwipeDurationChanged,
-                            onScrollModeChanged = onScrollModeChanged,
-                            onDelayChanged = onDelayChanged,
-                            onRepeatCountChanged = onRepeatCountChanged,
-                            onDurationChanged = onDurationChanged,
-                        )
+                        AppDestination.Automation -> AutomationScreen(automationViewModel)
                         AppDestination.Overlay -> OverlayScreen(
                             overlaySettingsViewModel = overlaySettingsViewModel,
                             advancedViewModel = advancedViewModel,
@@ -150,40 +132,6 @@ fun AppNavigation(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AutomationScreen(
-    onGestureAxisChanged: (GestureAxis) -> Unit,
-    onIntentDirectionChanged: (IntentDirection) -> Unit,
-    onGestureDistanceChanged: (Int) -> Unit,
-    onSwipeDurationChanged: (Long) -> Unit,
-    onScrollModeChanged: (com.personal.autoscroll.domain.model.ScrollMode) -> Unit,
-    onDelayChanged: (Long) -> Unit,
-    onRepeatCountChanged: (Int) -> Unit,
-    onDurationChanged: (Long) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text(
-            text = stringResource(R.string.nav_automation),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        GestureScreen(
-            showTitle = true,
-            onGestureAxisChanged = onGestureAxisChanged,
-            onIntentDirectionChanged = onIntentDirectionChanged,
-            onGestureDistanceChanged = onGestureDistanceChanged,
-            onSwipeDurationChanged = onSwipeDurationChanged,
-        )
-        TimingScreen(
-            showTitle = true,
-            onModeChanged = onScrollModeChanged,
-            onDelayChanged = onDelayChanged,
-            onRepeatCountChanged = onRepeatCountChanged,
-            onDurationChanged = onDurationChanged,
-        )
     }
 }
 

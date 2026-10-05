@@ -6,6 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -21,6 +22,31 @@ class AutomationRunnerTest {
         runner.run(timing(mode = ScrollMode.Once)) { count++; true }
 
         assertEquals(1, count)
+    }
+
+    @Test
+    fun startDelayDefersFirstGesture() = runTest {
+        var count = 0
+        val job = launch {
+            runner.run(
+                timing(
+                    mode = ScrollMode.Once,
+                    startDelayMillis = 500,
+                ),
+            ) {
+                count++
+                true
+            }
+        }
+
+        advanceTimeBy(499)
+        runCurrent()
+        assertEquals(0, count)
+
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(1, count)
+        job.cancelAndJoin()
     }
 
     @Test
@@ -80,10 +106,11 @@ class AutomationRunnerTest {
         delayMillis: Long = 100,
         repeatCount: Int? = null,
         durationMillis: Long? = null,
+        startDelayMillis: Long = 0,
     ): TimingConfig = TimingConfig(
         mode = mode,
         delayMillis = delayMillis,
-        startDelayMillis = 0,
+        startDelayMillis = startDelayMillis,
         repeatCount = repeatCount,
         durationMillis = durationMillis,
         stopOnAppChange = true,

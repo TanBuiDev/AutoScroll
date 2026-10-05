@@ -83,9 +83,12 @@ fun CurrentAppScreen(
         )
 
         QuickActionsCard(
+            onTest = viewModel::testGesture,
             onSave = viewModel::saveProfile,
             onShowOverlay = onShowOverlay,
             onHideOverlay = onHideOverlay,
+            testEnabled = state.profile != null && state.permissionState.accessibilityConnected,
+            saveEnabled = state.profile != null && state.profileDirty,
         )
 
         state.message?.let {
@@ -233,15 +236,23 @@ private fun ProfileCard(
                     modifier = Modifier.weight(1f),
                 )
             }
+            StatItem(
+                label = stringResource(R.string.label_status),
+                value = profile?.profileStatus?.name ?: stringResource(R.string.value_unknown),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
 @Composable
 private fun QuickActionsCard(
+    onTest: () -> Unit,
     onSave: () -> Unit,
     onShowOverlay: () -> Unit,
     onHideOverlay: () -> Unit,
+    testEnabled: Boolean,
+    saveEnabled: Boolean,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -274,12 +285,23 @@ private fun QuickActionsCard(
                     Text(stringResource(R.string.action_hide_overlay), maxLines = 1)
                 }
             }
-            Button(
-                onClick = onSave,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(13.dp),
-            ) {
-                Text(stringResource(R.string.action_save), maxLines = 1)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onTest,
+                    enabled = testEnabled,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(13.dp),
+                ) {
+                    Text(stringResource(R.string.action_test), maxLines = 1)
+                }
+                Button(
+                    onClick = onSave,
+                    enabled = saveEnabled,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(13.dp),
+                ) {
+                    Text(stringResource(R.string.action_save), maxLines = 1)
+                }
             }
         }
     }
