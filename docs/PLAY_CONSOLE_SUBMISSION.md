@@ -6,7 +6,7 @@ This repository can prepare and validate the release artifact, but account-level
 
 Use these files when completing Play Console:
 
-- Privacy Policy: https://github.com/TanBuiDev/AutoScroll/blob/main/docs/PRIVACY_POLICY.md
+- Privacy Policy: https://tanbuidev.github.io/AutoScroll/privacy/
 - Data Safety worksheet: `docs/DATA_SAFETY.md`
 - AccessibilityService declaration: `docs/ACCESSIBILITY_DECLARATION.md`
 - Store listing copy: `docs/STORE_LISTING.md`
@@ -31,10 +31,10 @@ If Play Console shows account-specific testing or verification requirements, com
 Set the Play Console Privacy Policy URL to:
 
 ~~~text
-https://github.com/TanBuiDev/AutoScroll/blob/main/docs/PRIVACY_POLICY.md
+https://tanbuidev.github.io/AutoScroll/privacy/
 ~~~
 
-Before submission, open that URL in a logged-out/incognito browser and confirm it is publicly readable.
+Before submission, open that URL in a logged-out/incognito browser and confirm it is publicly readable, globally accessible, served as HTML, and not an editable document.
 
 The same policy is linked from the app's Accessibility disclosure and Advanced settings.
 
