@@ -103,7 +103,10 @@ class CurrentAppViewModel @Inject constructor(
         val profile = uiState.value.profile ?: return
         viewModelScope.launch {
             val succeeded = runTestGesture(profile)
-            if (succeeded) {
+            if (
+                succeeded &&
+                activeProfileController.activeProfile.value?.packageName == profile.packageName
+            ) {
                 activeProfileController.markActiveProfileTested()
             }
             manualState.update {
