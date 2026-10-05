@@ -8,6 +8,7 @@ import com.personal.autoscroll.core.accessibility.AccessibilityServiceState
 import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.core.permissions.PermissionState
 import com.personal.autoscroll.core.profile.ActiveProfileController
+import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.usecase.RunTestGesture
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,8 @@ data class CurrentAppUiState(
         overlayPermissionGranted = false,
     ),
     val lastTestSucceeded: Boolean? = null,
+    val accessibilityConsentAccepted: Boolean = false,
+    val showAccessibilityDisclosure: Boolean = false,
     val message: CurrentAppMessage? = null,
 )
 
@@ -52,6 +55,7 @@ class CurrentAppViewModel @Inject constructor(
     private val activeProfileController: ActiveProfileController,
     private val permissionNavigator: PermissionNavigator,
     private val runTestGesture: RunTestGesture,
+    private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
     private val manualState = MutableStateFlow(CurrentAppUiState())
     private val permissionRefresh = MutableStateFlow(0)
@@ -75,7 +79,8 @@ class CurrentAppViewModel @Inject constructor(
         AccessibilityServiceState.isConnected,
         permissionRefresh,
         manualState,
-    ) { active, serviceConnected, _, manual ->
+        settingsDataStore.accessibilityDisclosureAccepted,
+    ) { active, serviceConnected, _, manual, consentAccepted ->
         val accessibilityEnabled = permissionNavigator.isAccessibilityEnabled()
         manual.copy(
             foregroundPackage = active.packageName,
@@ -83,6 +88,7 @@ class CurrentAppViewModel @Inject constructor(
             profile = active.profile,
             profilePersisted = active.persisted,
             profileDirty = active.dirty,
+            accessibilityConsentAccepted = consentAccepted,
             permissionState = PermissionState(
                 accessibilityEnabled = accessibilityEnabled,
                 accessibilityConnected = serviceConnected || accessibilityEnabled,
@@ -100,6 +106,10 @@ class CurrentAppViewModel @Inject constructor(
     }
 
     fun testGesture() {
+        if (!uiState.value.accessibilityConsentAccepted) {
+            showAccessibilityDisclosure()
+            return
+        }
         val profile = uiState.value.profile ?: return
         viewModelScope.launch {
             val succeeded = runTestGesture(profile)
@@ -137,8 +147,32 @@ class CurrentAppViewModel @Inject constructor(
         }
     }
 
-    fun openAccessibilitySettings() {
-        permissionNavigator.openAccessibilitySettings()
+    fun requestAccessibilityAccess() {
+        if (uiState.value.accessibilityConsentAccepted) {
+            permissionNavigator.openAccessibilitySettings()
+        } else {
+            showAccessibilityDisclosure()
+        }
+    }
+
+    fun showAccessibilityDisclosure() {
+        manualState.update { it.copy(showAccessibilityDisclosure = true) }
+    }
+
+    fun dismissAccessibilityDisclosure() {
+        manualState.update { it.copy(showAccessibilityDisclosure = false) }
+    }
+
+    fun acceptAccessibilityDisclosure() {
+        viewModelScope.launch {
+            settingsDataStore.acceptAccessibilityDisclosure()
+            manualState.update { it.copy(showAccessibilityDisclosure = false) }
+            permissionNavigator.openAccessibilitySettings()
+        }
+    }
+
+    fun openPrivacyPolicy() {
+        permissionNavigator.openPrivacyPolicy()
     }
 
     fun openOverlaySettings() {
