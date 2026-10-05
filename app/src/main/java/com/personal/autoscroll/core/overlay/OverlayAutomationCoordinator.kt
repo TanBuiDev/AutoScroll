@@ -6,6 +6,7 @@ import com.personal.autoscroll.core.accessibility.ForegroundAppObserver
 import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
 import com.personal.autoscroll.core.gesture.GestureMapper
+import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.GlobalSettings
@@ -28,6 +29,7 @@ class OverlayAutomationCoordinator @Inject constructor(
     private val automationController: AutomationController,
     private val gestureMapper: GestureMapper,
     private val foregroundAppObserver: ForegroundAppObserver,
+    private val settingsDataStore: SettingsDataStore,
 ) {
     private var profile: AppProfile = AppProfile.defaultForPackage(
         packageName = "manual.overlay",
@@ -62,6 +64,11 @@ class OverlayAutomationCoordinator @Inject constructor(
                 onSettings = { toggleSettings(scope) },
                 onClose = { hideOverlay() },
             ),
+            onPositionChanged = { x, y ->
+                scope.launch {
+                    settingsDataStore.updateCompactPosition(x, y)
+                }
+            },
         )
 
         stateJob?.cancel()
@@ -166,7 +173,9 @@ class OverlayAutomationCoordinator @Inject constructor(
         }
         startAppChangeWatch(scope, profile)
         overlayController.setRunning(true)
-        overlayController.collapseExpanded()
+        if (profile.overlayConfig.autoCollapse) {
+            overlayController.collapseExpanded()
+        }
     }
 
     private fun startAppChangeWatch(scope: CoroutineScope, activeProfile: AppProfile) {
