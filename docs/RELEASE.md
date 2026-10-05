@@ -12,6 +12,7 @@ The Android CI workflow runs:
 - Android lint
 - debug APK assembly
 - release APK assembly
+- release AAB assembly
 - Room schema consistency check
 - instrumentation tests
 - Room migration 1 -> 2 validation
@@ -77,13 +78,15 @@ Verify:
 
 The accessibility service must keep android:canRetrieveWindowContent set to false unless a future feature has a concrete, reviewed requirement to inspect accessibility node content.
 
-Before any Google Play release:
+Before any Google Play release verify:
 
-- review the current Google Play Accessibility API policy
-- ensure the store listing accurately describes the automation use case
-- complete any required Accessibility API declaration
-- provide required in-app prominent disclosure and consent for non-accessibility-tool usage
-- verify the app remains deterministic and user-configured rather than autonomously planning actions
+- first-time Accessibility access shows the in-app prominent disclosure
+- the user must tap "I understand and agree" before Accessibility Settings opens
+- Test and Overlay automation remain gated until consent is accepted
+- Privacy Policy opens from both the disclosure and Advanced settings
+- the store listing accurately describes the automation use case
+- the AccessibilityService declaration matches docs/ACCESSIBILITY_DECLARATION.md
+- the app remains deterministic and user-configured rather than autonomously planning actions
 
 Policy requirements can change independently of this repository, so re-check the current Play Console guidance for every store release.
 
@@ -92,7 +95,7 @@ Policy requirements can change independently of this repository, so re-check the
 For a candidate commit:
 
 ~~~powershell
-.\gradlew.bat clean :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
+.\gradlew.bat clean :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease
 ~~~
 
 For an emulator or connected test device:
@@ -106,6 +109,19 @@ Install the debug APK for smoke testing:
 ~~~powershell
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ~~~
+
+## Play submission materials
+
+Before a Play release, review:
+
+- docs/PRIVACY_POLICY.md
+- docs/DATA_SAFETY.md
+- docs/ACCESSIBILITY_DECLARATION.md
+- docs/STORE_LISTING.md
+- docs/SIGNING.md
+- docs/PLAY_CONSOLE_SUBMISSION.md
+
+Use the manual **Build Signed Play Bundle** workflow only after GitHub upload-signing secrets are configured.
 
 ## Release metadata
 
