@@ -33,8 +33,18 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Unit tests and debug build
-        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
+      - name: Unit tests, lint, debug and release builds
+        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
+
+      - name: Verify Room schemas are committed
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain -- app/schemas)" ]; then
+            echo "Room schema output differs from the committed files."
+            git diff -- app/schemas
+            git status --short -- app/schemas
+            exit 1
+          fi
 
   instrumentation-test:
     runs-on: ubuntu-latest
