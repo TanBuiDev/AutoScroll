@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.core.localization.AppLocale
 import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
+import com.personal.autoscroll.core.permissions.AccessibilityConsentStore
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.ThemeMode
@@ -129,13 +130,14 @@ private fun AutoScrollApp(
 class MainViewModel @Inject constructor(
     private val overlayAutomationCoordinator: OverlayAutomationCoordinator,
     settingsDataStore: SettingsDataStore,
+    accessibilityConsentStore: AccessibilityConsentStore,
 ) : ViewModel() {
     val settings = settingsDataStore.settings.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GlobalSettings.Default,
     )
-    private val accessibilityConsentAccepted = settingsDataStore.accessibilityDisclosureAccepted
+    private val accessibilityConsentAccepted = accessibilityConsentStore.accepted
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
