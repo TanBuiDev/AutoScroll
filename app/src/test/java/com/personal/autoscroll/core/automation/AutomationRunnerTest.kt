@@ -27,7 +27,10 @@ class AutomationRunnerTest {
     fun repeatRunsConfiguredCount() = runTest {
         var count = 0
 
-        runner.run(timing(mode = ScrollMode.Repeat, repeatCount = 3)) { count++ }
+        runner.run(timing(mode = ScrollMode.Repeat, repeatCount = 3)) {
+            count++
+            true
+        }
 
         assertEquals(3, count)
     }
