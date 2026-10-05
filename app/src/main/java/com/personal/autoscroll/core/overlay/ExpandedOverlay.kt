@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.personal.autoscroll.R
@@ -30,8 +32,11 @@ data class ExpandedOverlayActions(
 
 class ExpandedOverlay(
     context: Context,
+    private val windowManager: WindowManager,
+    private val layoutParams: WindowManager.LayoutParams,
     private var profile: AppProfile,
     private val actions: ExpandedOverlayActions,
+    private val onPositionChanged: (Int, Int) -> Unit = { _, _ -> },
 ) {
     private val modeRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
@@ -62,6 +67,8 @@ class ExpandedOverlay(
 
         addView(label(context, context.getString(R.string.overlay_config), size = 18f, color = Palette.TextPrimary).apply {
             typeface = android.graphics.Typeface.DEFAULT_BOLD
+            contentDescription = context.getString(R.string.overlay_drag_handle_description)
+            setOnTouchListener(createDragTouchListener())
         })
         addView(label(context, profile.appName, size = 12f, color = Palette.TextMuted).apply {
             setPadding(0, dp(2), 0, dp(10))
@@ -305,6 +312,48 @@ class ExpandedOverlay(
             ))
             ScrollMode.Once,
             ScrollMode.UntilStop -> Unit
+        }
+    }
+
+    private fun createDragTouchListener(): View.OnTouchListener {
+        var initialX = 0
+        var initialY = 0
+        var touchX = 0f
+        var touchY = 0f
+        var moved = false
+
+        return View.OnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    initialX = layoutParams.x
+                    initialY = layoutParams.y
+                    touchX = event.rawX
+                    touchY = event.rawY
+                    moved = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaX = event.rawX - touchX
+                    val deltaY = event.rawY - touchY
+                    if (kotlin.math.abs(deltaX) > view.dp(4) || kotlin.math.abs(deltaY) > view.dp(4)) {
+                        moved = true
+                        val metrics = view.resources.displayMetrics
+                        val maxX = (metrics.widthPixels - view.width).coerceAtLeast(0)
+                        val maxY = (metrics.heightPixels - view.height).coerceAtLeast(0)
+                        layoutParams.x = (initialX + deltaX.toInt()).coerceIn(0, maxX)
+                        layoutParams.y = (initialY + deltaY.toInt()).coerceIn(0, maxY)
+                        windowManager.updateViewLayout(view, layoutParams)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (moved) {
+                        onPositionChanged(layoutParams.x, layoutParams.y)
+                    }
+                    true
+                }
+                else -> false
+            }
         }
     }
 
