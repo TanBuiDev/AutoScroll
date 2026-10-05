@@ -17,12 +17,16 @@ import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.domain.model.applyGlobalSettings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@Singleton
 class OverlayAutomationCoordinator @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val overlayController: OverlayController,
@@ -31,6 +35,8 @@ class OverlayAutomationCoordinator @Inject constructor(
     private val foregroundAppObserver: ForegroundAppObserver,
     private val settingsDataStore: SettingsDataStore,
 ) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
     private var profile: AppProfile = AppProfile.defaultForPackage(
         packageName = "manual.overlay",
         appName = "Manual Overlay",
@@ -51,17 +57,17 @@ class OverlayAutomationCoordinator @Inject constructor(
         overlayController.updateExpanded(profile)
     }
 
-    fun showOverlay(scope: CoroutineScope, languageMode: LanguageMode) {
+    fun showOverlay(languageMode: LanguageMode) {
         this.languageMode = languageMode
         overlayController.showCompact(
             config = profile.overlayConfig,
             gestureAxis = profile.gestureConfig.axis,
             languageMode = languageMode,
             OverlayActions(
-                onStartStop = { toggleAutomation(scope) },
-                onNext = { runManualGesture(scope, IntentDirection.NextItem) },
-                onPrevious = { runManualGesture(scope, IntentDirection.PreviousItem) },
-                onSettings = { toggleSettings(scope) },
+                onStartStop = { toggleAutomation() },
+                onNext = { runManualGesture(IntentDirection.NextItem) },
+                onPrevious = { runManualGesture(IntentDirection.PreviousItem) },
+                onSettings = { toggleSettings() },
                 onClose = { hideOverlay() },
             ),
             onPositionChanged = { x, y ->
@@ -156,7 +162,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         }
     }
 
-    private fun toggleAutomation(scope: CoroutineScope) {
+    private fun toggleAutomation() {
         if (automationController.isRunning) {
             automationController.stop()
             appChangeJob?.cancel()
@@ -171,14 +177,14 @@ class OverlayAutomationCoordinator @Inject constructor(
         ) {
             dispatchGesture(profile)
         }
-        startAppChangeWatch(scope, profile)
+        startAppChangeWatch(profile)
         overlayController.setRunning(true)
         if (profile.overlayConfig.autoCollapse) {
             overlayController.collapseExpanded()
         }
     }
 
-    private fun startAppChangeWatch(scope: CoroutineScope, activeProfile: AppProfile) {
+    private fun startAppChangeWatch(activeProfile: AppProfile) {
         appChangeJob?.cancel()
         appChangeJob = null
         if (!activeProfile.timingConfig.stopOnAppChange || activeProfile.packageName == "manual.overlay") {
@@ -204,7 +210,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         }
     }
 
-    private fun runManualGesture(scope: CoroutineScope, direction: IntentDirection) {
+    private fun runManualGesture(direction: IntentDirection) {
         scope.launch {
             dispatchGesture(
                 profile.copy(
@@ -221,7 +227,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         return dispatcher.dispatch(gestureMapper.map(profile.gestureConfig))
     }
 
-    private fun toggleSettings(scope: CoroutineScope) {
+    private fun toggleSettings() {
         overlayController.toggleExpanded(
             profile = profile,
             languageMode = languageMode,
