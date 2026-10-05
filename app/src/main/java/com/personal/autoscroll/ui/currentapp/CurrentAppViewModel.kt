@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.R
 import com.personal.autoscroll.core.accessibility.AccessibilityServiceState
+import com.personal.autoscroll.core.permissions.AccessibilityConsentStore
 import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.core.permissions.PermissionState
 import com.personal.autoscroll.core.profile.ActiveProfileController
-import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.usecase.RunTestGesture
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,7 +55,7 @@ class CurrentAppViewModel @Inject constructor(
     private val activeProfileController: ActiveProfileController,
     private val permissionNavigator: PermissionNavigator,
     private val runTestGesture: RunTestGesture,
-    private val settingsDataStore: SettingsDataStore,
+    private val accessibilityConsentStore: AccessibilityConsentStore,
 ) : ViewModel() {
     private val manualState = MutableStateFlow(CurrentAppUiState())
     private val permissionRefresh = MutableStateFlow(0)
@@ -79,7 +79,7 @@ class CurrentAppViewModel @Inject constructor(
         AccessibilityServiceState.isConnected,
         permissionRefresh,
         manualState,
-        settingsDataStore.accessibilityDisclosureAccepted,
+        accessibilityConsentStore.accepted,
     ) { active, serviceConnected, _, manual, consentAccepted ->
         val accessibilityEnabled = permissionNavigator.isAccessibilityEnabled()
         manual.copy(
@@ -164,11 +164,9 @@ class CurrentAppViewModel @Inject constructor(
     }
 
     fun acceptAccessibilityDisclosure() {
-        viewModelScope.launch {
-            settingsDataStore.acceptAccessibilityDisclosure()
-            manualState.update { it.copy(showAccessibilityDisclosure = false) }
-            permissionNavigator.openAccessibilitySettings()
-        }
+        accessibilityConsentStore.accept()
+        manualState.update { it.copy(showAccessibilityDisclosure = false) }
+        permissionNavigator.openAccessibilitySettings()
     }
 
     fun openPrivacyPolicy() {
