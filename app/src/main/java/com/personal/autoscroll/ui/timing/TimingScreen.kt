@@ -67,7 +67,7 @@ fun TimingScreen(
             value = delaySeconds,
             onValueChange = {
                 delaySeconds = it
-                onDelayChanged((it * 1_000L).toLong())
+                onDelayChanged((it * 1_000f).toLong())
             },
             valueRange = 0.5f..60f,
         )
