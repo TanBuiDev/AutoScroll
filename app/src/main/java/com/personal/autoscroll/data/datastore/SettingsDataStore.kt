@@ -3,6 +3,7 @@ package com.personal.autoscroll.data.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -33,6 +34,10 @@ class SettingsDataStore @Inject constructor(
                 ?: GlobalSettings.Default.compactPositionX,
             compactPositionY = preferences[COMPACT_POSITION_Y]
                 ?: GlobalSettings.Default.compactPositionY,
+            showNextPrevious = preferences[SHOW_NEXT_PREVIOUS]
+                ?: GlobalSettings.Default.showNextPrevious,
+            autoCollapse = preferences[AUTO_COLLAPSE]
+                ?: GlobalSettings.Default.autoCollapse,
             themeMode = preferences[THEME_MODE]
                 ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: GlobalSettings.Default.themeMode,
@@ -61,6 +66,18 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
+    suspend fun updateShowNextPrevious(show: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[SHOW_NEXT_PREVIOUS] = show
+        }
+    }
+
+    suspend fun updateAutoCollapse(enabled: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[AUTO_COLLAPSE] = enabled
+        }
+    }
+
     suspend fun updateThemeMode(themeMode: ThemeMode) {
         context.settingsDataStore.edit { preferences ->
             preferences[THEME_MODE] = themeMode.name
@@ -78,6 +95,8 @@ class SettingsDataStore @Inject constructor(
         val OVERLAY_SIZE = stringPreferencesKey("overlay_size")
         val COMPACT_POSITION_X = intPreferencesKey("compact_position_x")
         val COMPACT_POSITION_Y = intPreferencesKey("compact_position_y")
+        val SHOW_NEXT_PREVIOUS = booleanPreferencesKey("show_next_previous")
+        val AUTO_COLLAPSE = booleanPreferencesKey("auto_collapse")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val LANGUAGE_MODE = stringPreferencesKey("language_mode")
     }
