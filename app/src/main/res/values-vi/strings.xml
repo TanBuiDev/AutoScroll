@@ -103,4 +103,30 @@
     <string name="preview_swipe_down">Vuốt xuống để về mục trước</string>
     <string name="preview_swipe_left">Vuốt trái để đến mục tiếp theo</string>
     <string name="preview_swipe_right">Vuốt phải để về mục trước</string>
+
+    <string name="label_start_delay">Chờ trước khi chạy</string>
+    <string name="label_preset">Mẫu cấu hình</string>
+    <string name="profile_enabled">Bật hồ sơ</string>
+    <string name="profile_unsaved_changes">Có thay đổi chưa lưu</string>
+    <string name="profile_not_saved">Hồ sơ này chưa được lưu</string>
+    <string name="automation_no_active_profile">Mở ứng dụng đích một lần để Auto Scroll chọn hồ sơ đang hoạt động.</string>
+    <string name="action_discard">Bỏ thay đổi</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="action_edit">Sửa</string>
+    <string name="action_delete">Xóa</string>
+    <string name="action_reset">Đặt lại</string>
+    <string name="preset_video_feed">Video feed</string>
+    <string name="preset_reading">Đọc</string>
+    <string name="preset_webtoon">Webtoon</string>
+    <string name="preset_horizontal_feed">Feed ngang</string>
+    <string name="preset_custom">Tùy chỉnh</string>
+    <string name="gesture_start_x">Điểm bắt đầu X: %1$d%%</string>
+    <string name="gesture_start_y">Điểm bắt đầu Y: %1$d%%</string>
+    <string name="gesture_invert_direction">Đảo hướng vuốt vật lý</string>
+    <string name="timing_stop_on_app_change">Dừng khi ứng dụng phía trước thay đổi</string>
+    <string name="profile_editing">Đang sửa %1$s</string>
+    <string name="profile_delete_title">Xóa hồ sơ?</string>
+    <string name="profile_delete_message">Xóa hồ sơ đã lưu của %1$s?</string>
+    <string name="profile_reset_title">Đặt lại hồ sơ?</string>
+    <string name="profile_reset_message">Đặt lại %1$s về mẫu Video Feed mặc định?</string>
 </resources>
