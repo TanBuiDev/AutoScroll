@@ -1,6 +1,7 @@
 package com.personal.autoscroll.data.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.ColumnInfo
 import com.personal.autoscroll.domain.model.AppProfile
@@ -8,13 +9,17 @@ import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.GestureConfig
 import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.OverlayConfig
+import com.personal.autoscroll.domain.model.OverlayOrientation
 import com.personal.autoscroll.domain.model.OverlaySize
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ProfileStatus
 import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.domain.model.TimingConfig
 
-@Entity(tableName = "app_profiles")
+@Entity(
+    tableName = "app_profiles",
+    indices = [Index(value = ["packageName"], unique = true)],
+)
 data class AppProfileEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
@@ -43,6 +48,8 @@ data class AppProfileEntity(
     val expandedPositionY: Int,
     val opacity: Float,
     val overlaySize: String,
+    @ColumnInfo(defaultValue = "'Vertical'")
+    val overlayOrientation: String,
     val showNextPrevious: Boolean,
     val autoCollapse: Boolean,
     val createdAt: Long,
@@ -75,6 +82,7 @@ fun AppProfile.toEntity(): AppProfileEntity = AppProfileEntity(
     expandedPositionY = overlayConfig.expandedPositionY,
     opacity = overlayConfig.opacity,
     overlaySize = overlayConfig.size.name,
+    overlayOrientation = overlayConfig.orientation.name,
     showNextPrevious = overlayConfig.showNextPrevious,
     autoCollapse = overlayConfig.autoCollapse,
     createdAt = createdAt,
@@ -112,6 +120,8 @@ fun AppProfileEntity.toDomain(): AppProfile = AppProfile(
         expandedPositionY = expandedPositionY,
         opacity = opacity,
         size = OverlaySize.valueOf(overlaySize),
+        orientation = runCatching { OverlayOrientation.valueOf(overlayOrientation) }
+            .getOrDefault(OverlayOrientation.Vertical),
         showNextPrevious = showNextPrevious,
         autoCollapse = autoCollapse,
     ),
