@@ -24,7 +24,13 @@ class OverlayController @Inject constructor(
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
-    fun showCompact(config: OverlayConfig, gestureAxis: GestureAxis, languageMode: LanguageMode, actions: OverlayActions) {
+    fun showCompact(
+        config: OverlayConfig,
+        gestureAxis: GestureAxis,
+        languageMode: LanguageMode,
+        actions: OverlayActions,
+        onPositionChanged: (Int, Int) -> Unit = { _, _ -> },
+    ) {
         if (!canDrawOverlays() || compactOverlay != null) return
 
         val overlayContext = AppLocale.localizedContext(context, languageMode)
@@ -40,6 +46,7 @@ class OverlayController @Inject constructor(
             overlayConfig = config,
             gestureAxis = gestureAxis,
             actions = actions,
+            onPositionChanged = onPositionChanged,
         )
         compactOverlay = overlay
         windowManager.addView(overlay.view, params)
