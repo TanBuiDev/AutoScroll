@@ -26,7 +26,22 @@ In Play Console:
 
 If Play Console shows account-specific testing or verification requirements, complete those before requesting Production access.
 
-## 2. Privacy Policy
+## 2. Publish the Privacy Policy site
+
+Before Play submission:
+
+1. Open the repository's **Settings > Pages**.
+2. Set the Pages source to **GitHub Actions**.
+3. Open GitHub Actions and run **Deploy Policy Pages**.
+4. Verify this URL opens in a logged-out/incognito browser:
+
+~~~text
+https://tanbuidev.github.io/AutoScroll/privacy/
+~~~
+
+This account-level Pages setting cannot be configured from source code and should be completed once after the workflow is merged to the default branch.
+
+## 3. Privacy Policy
 
 Set the Play Console Privacy Policy URL to:
 
@@ -38,7 +53,7 @@ Before submission, open that URL in a logged-out/incognito browser and confirm i
 
 The same policy is linked from the app's Accessibility disclosure and Advanced settings.
 
-## 3. Data Safety
+## 4. Data Safety
 
 Complete Data Safety using `docs/DATA_SAFETY.md` as the implementation worksheet.
 
@@ -51,7 +66,7 @@ For the current build, the expected state is:
 
 Re-evaluate the form if the release adds networking, telemetry, crash upload, analytics, ads, accounts, cloud sync, or a third-party SDK that transmits data.
 
-## 4. AccessibilityService declaration
+## 5. AccessibilityService declaration
 
 Use `docs/ACCESSIBILITY_DECLARATION.md`.
 
@@ -68,7 +83,7 @@ Key declaration facts:
 
 Upload a reviewer video demonstrating the full disclosure, consent, Android settings enablement, profile configuration, overlay, and deterministic swipe behavior.
 
-## 5. App content declarations
+## 6. App content declarations
 
 Complete all Play Console sections shown for the account and release, including as applicable:
 
@@ -83,7 +98,7 @@ Complete all Play Console sections shown for the account and release, including 
 
 Do not claim the app is an accessibility tool unless the product's primary purpose changes accordingly.
 
-## 6. Store listing
+## 7. Store listing
 
 Use `docs/STORE_LISTING.md` as the approved copy source.
 
@@ -97,7 +112,7 @@ Prepare separately in Play Console:
 
 Screenshots should accurately show the current UI and should not hide the Accessibility disclosure.
 
-## 7. Upload signing secrets
+## 8. Upload signing secrets
 
 Configure the GitHub Secrets documented in `docs/SIGNING.md`:
 
@@ -110,7 +125,7 @@ PLAY_UPLOAD_KEY_PASSWORD
 
 Never paste these values into source files, PR comments, issues, release notes, or logs.
 
-## 8. Build the signed AAB
+## 9. Build the signed AAB
 
 After the signing secrets exist on the default branch:
 
@@ -123,7 +138,7 @@ After the signing secrets exist on the default branch:
 
 The normal Android CI also builds `:app:bundleRelease` without requiring signing secrets, so AAB generation stays continuously validated.
 
-## 9. Reviewer instructions
+## 10. Reviewer instructions
 
 Suggested reviewer path:
 
@@ -142,7 +157,7 @@ Suggested reviewer path:
 
 Tell the reviewer that window-content retrieval is disabled and that the service only uses foreground app identity plus gesture dispatch.
 
-## 10. Track progression
+## 11. Track progression
 
 Start with the least risky track available to the account:
 
@@ -153,7 +168,7 @@ Start with the least risky track available to the account:
 
 Testing-track eligibility can depend on Play account history and current Play Console policy. Follow the requirements shown in the account rather than assuming a fixed tester count or duration.
 
-## 11. Final production gate
+## 12. Final production gate
 
 Do not promote to Production unless all of the following are true:
 
