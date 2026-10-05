@@ -8,7 +8,6 @@ import androidx.activity.viewModels
 import android.view.Window
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
@@ -22,7 +21,6 @@ import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.core.localization.AppLocale
 import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
 import com.personal.autoscroll.data.datastore.SettingsDataStore
-import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.IntentDirection
@@ -96,7 +94,6 @@ private fun AutoScrollApp(
     onHideOverlay: () -> Unit,
 ) {
     val settings = viewModel.settings.collectAsStateWithLifecycle()
-    val currentAppState = currentAppViewModel.uiState.collectAsStateWithLifecycle()
     val baseConfiguration = LocalConfiguration.current
     val baseContext = LocalContext.current
     val systemDarkTheme = isSystemInDarkTheme()
@@ -111,14 +108,6 @@ private fun AutoScrollApp(
     }
     val localizedConfiguration = remember(baseConfiguration, settings.value.languageMode) {
         AppLocale.localizedConfiguration(baseConfiguration, settings.value.languageMode)
-    }
-
-    LaunchedEffect(
-        currentAppState.value.foregroundPackage,
-        currentAppState.value.profile?.id,
-        currentAppState.value.profile?.updatedAt,
-    ) {
-        viewModel.updateActiveProfile(currentAppState.value.profile)
     }
 
     SideEffect {
@@ -163,14 +152,6 @@ class MainViewModel @Inject constructor(
         initialValue = GlobalSettings.Default,
     )
 
-    init {
-        viewModelScope.launch {
-            settings.collect { currentSettings ->
-                overlayAutomationCoordinator.applyGlobalSettings(currentSettings)
-            }
-        }
-    }
-
     fun showOverlay() {
         overlayAutomationCoordinator.showOverlay(
             languageMode = settings.value.languageMode,
@@ -179,10 +160,6 @@ class MainViewModel @Inject constructor(
 
     fun hideOverlay() {
         overlayAutomationCoordinator.hideOverlay()
-    }
-
-    fun updateActiveProfile(profile: AppProfile?) {
-        overlayAutomationCoordinator.updateActiveProfile(profile)
     }
 
     fun updateGestureAxis(axis: GestureAxis) {
