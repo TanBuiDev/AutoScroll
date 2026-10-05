@@ -18,7 +18,7 @@ class AutomationRunnerTest {
     fun onceRunsOneGesture() = runTest {
         var count = 0
 
-        runner.run(timing(mode = ScrollMode.Once)) { count++ }
+        runner.run(timing(mode = ScrollMode.Once)) { count++; true }
 
         assertEquals(1, count)
     }
@@ -38,9 +38,22 @@ class AutomationRunnerTest {
 
         runner.run(timing(mode = ScrollMode.Timer, delayMillis = 100, durationMillis = 250)) {
             count++
+            true
         }
 
         assertEquals(3, count)
+    }
+
+    @Test
+    fun failedGestureStopsRepeatImmediately() = runTest {
+        var count = 0
+
+        runner.run(timing(mode = ScrollMode.Repeat, repeatCount = 5)) {
+            count++
+            count < 2
+        }
+
+        assertEquals(2, count)
     }
 
     @Test
@@ -49,6 +62,7 @@ class AutomationRunnerTest {
         val job = launch {
             runner.run(timing(mode = ScrollMode.UntilStop, delayMillis = 100)) {
                 count++
+                true
             }
         }
 
