@@ -2,6 +2,8 @@
 
 **Effective date: October 5, 2026**
 
+Published policy URL: https://tanbuidev.github.io/AutoScroll/privacy/
+
 Auto Scroll is a personal Android automation application that performs swipe gestures configured by the user. This policy explains what information the app processes, where that information is stored, and how Android AccessibilityService is used.
 
 ## Summary
