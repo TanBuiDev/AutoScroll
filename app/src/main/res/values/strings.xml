@@ -129,4 +129,16 @@
     <string name="profile_delete_message">Delete the saved profile for %1$s?</string>
     <string name="profile_reset_title">Reset profile?</string>
     <string name="profile_reset_message">Reset %1$s to the default Video Feed preset?</string>
+
+    <string name="accessibility_disclosure_title">Accessibility service disclosure</string>
+    <string name="accessibility_disclosure_intro">Auto Scroll uses Android AccessibilityService only to run swipe gestures that you configure.</string>
+    <string name="accessibility_disclosure_foreground">It reads foreground app identity from window-state change events so the correct per-app profile can be selected.</string>
+    <string name="accessibility_disclosure_no_content">It does not retrieve or read screen content, text, passwords, messages, or accessibility node data.</string>
+    <string name="accessibility_disclosure_actions">When you start automation, it dispatches deterministic swipe gestures using your selected direction, timing, and profile settings.</string>
+    <string name="accessibility_disclosure_local">Profile, consent, and settings data stay on this device. Auto Scroll does not include ads, analytics, or a data-upload service.</string>
+    <string name="accessibility_disclosure_choice">You can cancel and continue using settings that do not require the Accessibility service.</string>
+    <string name="accessibility_disclosure_agree">I understand and agree</string>
+    <string name="accessibility_disclosure_review">Accessibility disclosure</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_local_summary">Auto Scroll stores profiles and preferences locally on your device and does not send them to a developer server.</string>
 </resources>
