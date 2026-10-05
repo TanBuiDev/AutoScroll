@@ -1,25 +1,17 @@
 package com.personal.autoscroll.ui.currentapp
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.R
 import com.personal.autoscroll.core.accessibility.AccessibilityServiceState
-import com.personal.autoscroll.core.accessibility.AutoScrollAccessibilityService
-import com.personal.autoscroll.core.accessibility.ForegroundAppObserver
 import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.core.permissions.PermissionState
+import com.personal.autoscroll.core.profile.ActiveProfileController
 import com.personal.autoscroll.domain.model.AppProfile
-import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ProfileStatus
-import com.personal.autoscroll.domain.usecase.LoadProfileForPackage
 import com.personal.autoscroll.domain.usecase.RunTestGesture
-import com.personal.autoscroll.domain.usecase.SaveCurrentAppProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,6 +25,7 @@ data class CurrentAppUiState(
     val foregroundPackage: String? = null,
     val foregroundAppName: String? = null,
     val profile: AppProfile? = null,
+    val profilePersisted: Boolean = false,
     val permissionState: PermissionState = PermissionState(
         accessibilityEnabled = false,
         accessibilityConnected = false,
@@ -47,37 +40,45 @@ data class CurrentAppMessage(
     val arg: String? = null,
 )
 
+private data class ActiveProfileSnapshot(
+    val packageName: String?,
+    val profile: AppProfile?,
+    val persisted: Boolean,
+)
+
 @HiltViewModel
 class CurrentAppViewModel @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    foregroundAppObserver: ForegroundAppObserver,
+    private val activeProfileController: ActiveProfileController,
     private val permissionNavigator: PermissionNavigator,
-    private val loadProfileForPackage: LoadProfileForPackage,
-    private val saveCurrentAppProfile: SaveCurrentAppProfile,
     private val runTestGesture: RunTestGesture,
 ) : ViewModel() {
     private val manualState = MutableStateFlow(CurrentAppUiState())
     private val permissionRefresh = MutableStateFlow(0)
 
+    private val activeProfileSnapshot = combine(
+        activeProfileController.foregroundPackage,
+        activeProfileController.activeProfile,
+        activeProfileController.isPersisted,
+    ) { packageName, profile, persisted ->
+        ActiveProfileSnapshot(
+            packageName = packageName,
+            profile = profile,
+            persisted = persisted,
+        )
+    }
+
     val uiState: StateFlow<CurrentAppUiState> = combine(
-        foregroundAppObserver.foregroundPackageExcluding(context.packageName),
+        activeProfileSnapshot,
         AccessibilityServiceState.isConnected,
         permissionRefresh,
         manualState,
-    ) { packageName, serviceConnected, _, manual ->
-        val appName = packageName?.let { resolveAppName(it) }
-        val profile = packageName?.let {
-            loadProfileForPackage(
-                packageName = it,
-                appName = appName ?: it,
-                presetType = PresetType.VideoFeed,
-            )
-        }
+    ) { active, serviceConnected, _, manual ->
         val accessibilityEnabled = permissionNavigator.isAccessibilityEnabled()
         manual.copy(
-            foregroundPackage = packageName,
-            foregroundAppName = appName,
-            profile = profile,
+            foregroundPackage = active.packageName,
+            foregroundAppName = active.profile?.appName,
+            profile = active.profile,
+            profilePersisted = active.persisted,
             permissionState = PermissionState(
                 accessibilityEnabled = accessibilityEnabled,
                 accessibilityConnected = serviceConnected || accessibilityEnabled,
@@ -97,10 +98,7 @@ class CurrentAppViewModel @Inject constructor(
     fun testGesture() {
         val profile = uiState.value.profile ?: return
         viewModelScope.launch {
-            val succeeded = runTestGesture(
-                profile = profile,
-                dispatcher = AutoScrollAccessibilityService.dispatcherOrNull(),
-            )
+            val succeeded = runTestGesture(profile)
             manualState.update {
                 it.copy(
                     lastTestSucceeded = succeeded,
@@ -117,11 +115,16 @@ class CurrentAppViewModel @Inject constructor(
     fun saveProfile() {
         val profile = uiState.value.profile ?: return
         viewModelScope.launch {
-            saveCurrentAppProfile(
-                profile.copy(profileStatus = ProfileStatus.Tested),
-            )
+            val saved = activeProfileController.saveActiveProfile(
+                profileStatus = ProfileStatus.Tested,
+            ) ?: return@launch
             manualState.update {
-                it.copy(message = CurrentAppMessage(R.string.message_profile_saved, profile.appName))
+                it.copy(
+                    message = CurrentAppMessage(
+                        R.string.message_profile_saved,
+                        saved.appName,
+                    ),
+                )
             }
         }
     }
@@ -133,18 +136,4 @@ class CurrentAppViewModel @Inject constructor(
     fun openOverlaySettings() {
         permissionNavigator.openOverlaySettings()
     }
-
-    private fun resolveAppName(packageName: String): String? =
-        runCatching {
-            val applicationInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.getApplicationInfo(
-                    packageName,
-                    PackageManager.ApplicationInfoFlags.of(0),
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.getApplicationInfo(packageName, 0)
-            }
-            context.packageManager.getApplicationLabel(applicationInfo).toString()
-        }.getOrNull()
 }
