@@ -77,6 +77,7 @@ fun CurrentAppScreen(
 
         ProfileCard(
             profile = state.profile,
+            profilePersisted = state.profilePersisted,
             foregroundPackage = state.foregroundPackage,
             foregroundAppName = state.foregroundAppName,
         )
@@ -158,6 +159,7 @@ private fun PermissionCard(
 @Composable
 private fun ProfileCard(
     profile: AppProfile?,
+    profilePersisted: Boolean,
     foregroundPackage: String?,
     foregroundAppName: String?,
 ) {
@@ -187,12 +189,12 @@ private fun ProfileCard(
                     PackagePill(foregroundPackage ?: profile?.packageName ?: stringResource(R.string.value_unknown))
                 }
                 StatusPill(
-                    text = if (profile != null) {
+                    text = if (profilePersisted) {
                         stringResource(R.string.value_active_profile)
                     } else {
                         stringResource(R.string.value_no_profile)
                     },
-                    active = profile != null,
+                    active = profilePersisted,
                 )
             }
 
