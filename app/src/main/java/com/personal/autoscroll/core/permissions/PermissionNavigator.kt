@@ -51,6 +51,6 @@ class PermissionNavigator @Inject constructor(
 
     private companion object {
         const val PRIVACY_POLICY_URL =
-            "https://github.com/TanBuiDev/AutoScroll/blob/main/docs/PRIVACY_POLICY.md"
+            "https://tanbuidev.github.io/AutoScroll/privacy/"
     }
 }
