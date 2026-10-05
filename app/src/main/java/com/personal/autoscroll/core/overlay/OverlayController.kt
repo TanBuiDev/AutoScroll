@@ -68,21 +68,27 @@ class OverlayController @Inject constructor(
         profile: com.personal.autoscroll.domain.model.AppProfile,
         languageMode: LanguageMode,
         actions: ExpandedOverlayActions,
+        onPositionChanged: (Int, Int) -> Unit = { _, _ -> },
     ) {
         if (!canDrawOverlays()) return
         if (expandedOverlay == null) {
-            val overlay = ExpandedOverlay(AppLocale.localizedContext(context, languageMode), profile, actions)
-            expandedOverlay = overlay
-            windowManager.addView(
-                overlay.view,
-                defaultParams(
-                    width = modalWidth(),
-                    x = 0,
-                    y = 0,
-                    gravity = Gravity.CENTER,
-                    dimAmount = 0.16f,
-                ),
+            val params = defaultParams(
+                width = modalWidth(),
+                x = profile.overlayConfig.expandedPositionX,
+                y = profile.overlayConfig.expandedPositionY,
+                gravity = Gravity.TOP or Gravity.START,
+                dimAmount = 0.16f,
             )
+            val overlay = ExpandedOverlay(
+                context = AppLocale.localizedContext(context, languageMode),
+                windowManager = windowManager,
+                layoutParams = params,
+                profile = profile,
+                actions = actions,
+                onPositionChanged = onPositionChanged,
+            )
+            expandedOverlay = overlay
+            windowManager.addView(overlay.view, params)
         } else {
             hideExpanded()
         }
