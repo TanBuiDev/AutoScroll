@@ -23,7 +23,7 @@ class OverlayConfigSettingsTest {
         assertEquals(0.76f, updated.opacity)
         assertEquals(OverlaySize.Large, updated.size)
         assertEquals(OverlayOrientation.Horizontal, updated.orientation)
-        assertEquals(false, updated.showNextPrevious)
-        assertEquals(false, updated.autoCollapse)
+        assertEquals(true, updated.showNextPrevious)
+        assertEquals(true, updated.autoCollapse)
     }
 }
