@@ -25,6 +25,7 @@ class CompactOverlay(
     private var overlayConfig: OverlayConfig,
     private var gestureAxis: GestureAxis,
     private val actions: OverlayActions,
+    private val onPositionChanged: (Int, Int) -> Unit = { _, _ -> },
 ) {
     private val rootContainer = LinearLayout(context)
     private val startStopButton = actionButton(
@@ -101,6 +102,8 @@ class CompactOverlay(
         }
         buttonsContainer.orientation = rootContainer.orientation
         buttonsContainer.visibility = if (isCollapsed) View.GONE else View.VISIBLE
+        nextButton.visibility = if (overlayConfig.showNextPrevious) View.VISIBLE else View.GONE
+        previousButton.visibility = if (overlayConfig.showNextPrevious) View.VISIBLE else View.GONE
         handleView.setCollapsed(isCollapsed)
         rootContainer.setPadding(
             rootContainer.context.dp(if (isCollapsed) 4 else densitySize.panelPaddingHorizontal),
@@ -146,14 +149,26 @@ class CompactOverlay(
                     val deltaY = event.rawY - touchY
                     if (kotlin.math.abs(deltaX) > view.context.dp(4) || kotlin.math.abs(deltaY) > view.context.dp(4)) {
                         moved = true
-                        this@CompactOverlay.layoutParams.x = initialX + deltaX.toInt()
-                        this@CompactOverlay.layoutParams.y = initialY + deltaY.toInt()
+                        val metrics = view.resources.displayMetrics
+                        val maxX = (metrics.widthPixels - view.width).coerceAtLeast(0)
+                        val maxY = (metrics.heightPixels - view.height).coerceAtLeast(0)
+                        this@CompactOverlay.layoutParams.x =
+                            (initialX + deltaX.toInt()).coerceIn(0, maxX)
+                        this@CompactOverlay.layoutParams.y =
+                            (initialY + deltaY.toInt()).coerceIn(0, maxY)
                         windowManager.updateViewLayout(view, this@CompactOverlay.layoutParams)
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    if (!moved) toggleCollapsed()
+                    if (!moved) {
+                        toggleCollapsed()
+                    } else {
+                        onPositionChanged(
+                            this@CompactOverlay.layoutParams.x,
+                            this@CompactOverlay.layoutParams.y,
+                        )
+                    }
                     true
                 }
                 else -> false
