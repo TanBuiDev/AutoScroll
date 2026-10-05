@@ -129,4 +129,16 @@
     <string name="profile_delete_message">Xóa hồ sơ đã lưu của %1$s?</string>
     <string name="profile_reset_title">Đặt lại hồ sơ?</string>
     <string name="profile_reset_message">Đặt lại %1$s về mẫu Video Feed mặc định?</string>
+
+    <string name="accessibility_disclosure_title">Thông báo về dịch vụ Trợ năng</string>
+    <string name="accessibility_disclosure_intro">Auto Scroll chỉ dùng Android AccessibilityService để thực hiện các thao tác vuốt do bạn cấu hình.</string>
+    <string name="accessibility_disclosure_foreground">Ứng dụng đọc danh tính ứng dụng đang ở phía trước từ sự kiện thay đổi cửa sổ để chọn đúng hồ sơ cho từng ứng dụng.</string>
+    <string name="accessibility_disclosure_no_content">Ứng dụng không truy xuất hoặc đọc nội dung màn hình, văn bản, mật khẩu, tin nhắn hay dữ liệu cây nút Trợ năng.</string>
+    <string name="accessibility_disclosure_actions">Khi bạn bắt đầu tự động hóa, ứng dụng thực hiện các thao tác vuốt xác định trước theo hướng, thời gian và hồ sơ mà bạn đã chọn.</string>
+    <string name="accessibility_disclosure_local">Hồ sơ, trạng thái đồng ý và cài đặt được lưu trên thiết bị. Auto Scroll không tích hợp quảng cáo, phân tích hay dịch vụ tải dữ liệu lên máy chủ.</string>
+    <string name="accessibility_disclosure_choice">Bạn có thể hủy và tiếp tục dùng các cài đặt không cần dịch vụ Trợ năng.</string>
+    <string name="accessibility_disclosure_agree">Tôi hiểu và đồng ý</string>
+    <string name="accessibility_disclosure_review">Thông báo Trợ năng</string>
+    <string name="privacy_policy">Chính sách quyền riêng tư</string>
+    <string name="privacy_local_summary">Auto Scroll lưu hồ sơ và tùy chọn cục bộ trên thiết bị và không gửi chúng tới máy chủ của nhà phát triển.</string>
 </resources>

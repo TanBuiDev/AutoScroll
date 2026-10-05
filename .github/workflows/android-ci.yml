@@ -33,8 +33,11 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Unit tests, lint, debug and release builds
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
+      - name: Unit tests, lint, debug, release APK and release bundle
+        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease
+
+      - name: Verify release bundle exists
+        run: test -f app/build/outputs/bundle/release/app-release.aab
 
       - name: Verify Room schemas are committed
         shell: bash

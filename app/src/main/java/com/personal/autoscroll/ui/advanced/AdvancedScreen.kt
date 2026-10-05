@@ -9,6 +9,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.personal.autoscroll.R
+import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.ThemeMode
@@ -45,6 +47,14 @@ fun AdvancedScreen(viewModel: AdvancedViewModel, showTitle: Boolean = true) {
             text = stringResource(R.string.advanced_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Text(
+            text = stringResource(R.string.privacy_local_summary),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        TextButton(onClick = viewModel::openPrivacyPolicy) {
+            Text(stringResource(R.string.privacy_policy))
+        }
         Text(stringResource(R.string.setting_theme), color = MaterialTheme.colorScheme.onSurface)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ThemeMode.entries.forEach { mode ->
@@ -81,6 +91,7 @@ fun AdvancedScreen(viewModel: AdvancedViewModel, showTitle: Boolean = true) {
 @HiltViewModel
 class AdvancedViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
+    private val permissionNavigator: PermissionNavigator,
 ) : ViewModel() {
     val themeMode = settingsDataStore.settings
         .map { it.themeMode }
@@ -107,6 +118,10 @@ class AdvancedViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.updateLanguageMode(languageMode)
         }
+    }
+
+    fun openPrivacyPolicy() {
+        permissionNavigator.openPrivacyPolicy()
     }
 }
 

@@ -8,7 +8,7 @@ Auto Scroll is designed for predictable user-configured workflows such as short-
 
 Current app version: **22.4.1**.
 
-The core automation, per-app profile lifecycle, Room persistence, migration coverage, overlay controls, and CI release checks are implemented. The repository is suitable for local builds and long-term personal use. Publishing through Google Play still requires a separate Accessibility API policy/disclosure review before release.
+The core automation, per-app profile lifecycle, Room persistence, migration coverage, overlay controls, Accessibility disclosure/consent flow, Play release bundle validation, and CI release checks are implemented. The repository includes the policy and submission materials needed to prepare a Google Play release. Account-level Play Console declarations, reviewer assets, and signing secrets must still be completed by the developer before submission.
 
 ## Features
 
@@ -24,6 +24,9 @@ The core automation, per-app profile lifecycle, Room persistence, migration cove
 - Manual language selection: system, English, Vietnamese.
 - Theme selection: system, light, dark.
 - Accessibility-service gesture dispatching without retrieving window content.
+- Versioned prominent Accessibility disclosure and affirmative consent before opening Accessibility Settings.
+- In-app link to the public Privacy Policy.
+- Release AAB validation and optional environment-based upload signing.
 
 ## Screens
 
@@ -102,7 +105,7 @@ app/build/outputs/apk/debug/app-debug.apk
 Release build verification:
 
 ~~~powershell
-.\gradlew.bat :app:lintDebug :app:assembleRelease
+.\gradlew.bat :app:lintDebug :app:assembleRelease :app:bundleRelease
 ~~~
 
 ## Run Tests
@@ -157,9 +160,21 @@ GitHub Actions validates:
 - instrumentation tests on an Android emulator
 - Room migration 1 -> 2
 
-## Release
+## Google Play Release
 
-See [docs/RELEASE.md](docs/RELEASE.md) for the release checklist, database migration safety checks, Accessibility API review items, and APK verification steps.
+The repository includes a versioned in-app Accessibility disclosure and consent flow. Test gestures and overlay automation are gated until consent is accepted. The Accessibility service keeps `canRetrieveWindowContent=false`.
+
+Release and Play Console materials:
+
+- [Release checklist](docs/RELEASE.md)
+- [Privacy Policy](docs/PRIVACY_POLICY.md)
+- [Data Safety worksheet](docs/DATA_SAFETY.md)
+- [AccessibilityService declaration](docs/ACCESSIBILITY_DECLARATION.md)
+- [Store listing copy](docs/STORE_LISTING.md)
+- [Upload signing guide](docs/SIGNING.md)
+- [Play Console submission checklist](docs/PLAY_CONSOLE_SUBMISSION.md)
+
+Normal CI validates `:app:bundleRelease`. After upload-signing secrets are configured, the manual **Build Signed Play Bundle** GitHub Actions workflow builds and verifies a signed AAB without storing signing material in the repository.
 
 ## Repository Notes
 

@@ -18,6 +18,15 @@ class PermissionNavigator @Inject constructor(
         )
     }
 
+    fun openPrivacyPolicy() {
+        context.startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse(PRIVACY_POLICY_URL),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
     fun openOverlaySettings() {
         context.startActivity(
             Intent(
@@ -39,4 +48,9 @@ class PermissionNavigator @Inject constructor(
     }
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
+
+    private companion object {
+        const val PRIVACY_POLICY_URL =
+            "https://tanbuidev.github.io/AutoScroll/privacy/"
+    }
 }

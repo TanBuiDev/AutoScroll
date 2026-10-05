@@ -5,6 +5,17 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+val releaseStoreFilePath = System.getenv("AUTOSCROLL_UPLOAD_STORE_FILE")
+val releaseStorePassword = System.getenv("AUTOSCROLL_UPLOAD_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("AUTOSCROLL_UPLOAD_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("AUTOSCROLL_UPLOAD_KEY_PASSWORD")
+val hasReleaseSigning = listOf(
+    releaseStoreFilePath,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.personal.autoscroll"
     compileSdk = 36
@@ -19,8 +30,22 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFilePath))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
