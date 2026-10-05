@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Scroll Privacy Policy</title>
+  <meta name="description" content="Privacy Policy for the Auto Scroll Android application">
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f7f8fa; color: #172033; line-height: 1.65; }
+    main { max-width: 820px; margin: 0 auto; padding: 40px 20px 72px; }
+    article { background: white; border: 1px solid #dfe3ea; border-radius: 18px; padding: 28px; }
+    h1, h2 { line-height: 1.25; }
+    h2 { margin-top: 30px; }
+    a { color: #2457c5; word-break: break-word; }
+    code { background: #f0f2f5; border-radius: 5px; padding: 2px 5px; }
+    .meta { color: #596579; }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <h1>Auto Scroll Privacy Policy</h1>
+      <p class="meta"><strong>Effective date:</strong> October 5, 2026</p>
+
+      <p>Auto Scroll is a personal Android automation application that performs swipe gestures configured by the user. This policy explains what information the app processes, where that information is stored, and how Android AccessibilityService is used.</p>
+
+      <h2>Summary</h2>
+      <p>Auto Scroll does not require an account and does not include advertising, analytics, tracking SDKs, or a developer-operated data upload service.</p>
+      <p>The current application does not request the Android INTERNET permission. Profile and settings data are stored locally on the device.</p>
+
+      <h2>Information processed on the device</h2>
+      <p>Auto Scroll processes the following information locally:</p>
+      <ul>
+        <li>the package name and app label of the foreground application, so the matching per-app profile can be selected;</li>
+        <li>gesture settings such as direction, axis, distance, start position, and duration;</li>
+        <li>timing settings such as delay, start delay, repeat count, timer duration, and stop-on-app-change;</li>
+        <li>overlay preferences and positions;</li>
+        <li>profile state and preset selection; and</li>
+        <li>whether the current version of the Accessibility disclosure has been accepted.</li>
+      </ul>
+      <p>This information is stored on the user's device using Room, Android DataStore, and a local app preference for the versioned Accessibility disclosure consent.</p>
+
+      <h2>AccessibilityService</h2>
+      <p>Auto Scroll uses Android AccessibilityService for two narrowly defined purposes:</p>
+      <ol>
+        <li>receiving foreground window-state change events so it can identify which app profile should be active; and</li>
+        <li>dispatching deterministic swipe gestures requested and configured by the user.</li>
+      </ol>
+      <p>The AccessibilityService configuration sets <code>canRetrieveWindowContent=false</code>. Auto Scroll does not retrieve the accessibility node tree and does not read screen text, passwords, messages, form contents, or other on-screen content through AccessibilityService.</p>
+      <p>Auto Scroll does not autonomously decide what to click, purchase, send, post, or approve. Gesture behavior is determined by settings selected by the user.</p>
+
+      <h2>Overlay permission</h2>
+      <p>Auto Scroll may request Android's “Display over other apps” permission so the floating control overlay can be shown above the target app.</p>
+
+      <h2>Data transmission and sharing</h2>
+      <p>The current version of Auto Scroll does not transmit profile, settings, foreground-app, or AccessibilityService data to a developer server.</p>
+      <p>Auto Scroll does not sell or share user data with advertisers or data brokers.</p>
+      <p>Opening external links launches the user's browser. The browser and destination website may process data under their own privacy policies.</p>
+
+      <h2>Data retention and deletion</h2>
+      <p>Profiles and preferences remain on the device until one of the following occurs:</p>
+      <ul>
+        <li>the user deletes or resets a profile;</li>
+        <li>the user clears Auto Scroll's app data; or</li>
+        <li>the user uninstalls Auto Scroll.</li>
+      </ul>
+      <p>Because Auto Scroll does not maintain a remote account or developer database, there is no separate server-side account deletion process.</p>
+
+      <h2>Children</h2>
+      <p>Auto Scroll is not designed to collect personal information from children. The current app does not transmit personal data to a developer server.</p>
+
+      <h2>Security</h2>
+      <p>Auto Scroll minimizes Accessibility privileges by disabling window-content retrieval and keeps app configuration data local to the device. Android platform protections and the security of the user's device also affect local data security.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>If a future release adds network services, analytics, advertising, cloud synchronization, or materially changes AccessibilityService behavior, this policy and the Google Play Data Safety declaration must be updated before that release.</p>
+
+      <h2>Contact</h2>
+      <p>For questions about this policy, use the public Auto Scroll repository issue tracker:</p>
+      <p><a href="https://github.com/TanBuiDev/AutoScroll/issues">https://github.com/TanBuiDev/AutoScroll/issues</a></p>
+    </article>
+  </main>
+</body>
+</html>
