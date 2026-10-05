@@ -26,6 +26,7 @@ import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.GestureAxis
 import com.personal.autoscroll.domain.model.IntentDirection
+import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.domain.model.ThemeMode
 import com.personal.autoscroll.ui.AppNavigation
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
@@ -146,6 +147,10 @@ private fun AutoScrollApp(
                 onSwipeDurationChanged = onSwipeDurationChanged,
                 onShowOverlay = onShowOverlay,
                 onHideOverlay = onHideOverlay,
+                onScrollModeChanged = viewModel::updateScrollMode,
+                onDelayChanged = viewModel::updateDelayMillis,
+                onRepeatCountChanged = viewModel::updateRepeatCount,
+                onDurationChanged = viewModel::updateDurationMillis,
             )
         }
     }
@@ -199,5 +204,21 @@ class MainViewModel @Inject constructor(
 
     fun updateSwipeDuration(durationMillis: Long) {
         overlayAutomationCoordinator.updateSwipeDuration(durationMillis)
+    }
+
+    fun updateScrollMode(mode: ScrollMode) {
+        overlayAutomationCoordinator.updateScrollMode(mode)
+    }
+
+    fun updateDelayMillis(delayMillis: Long) {
+        overlayAutomationCoordinator.updateDelayMillis(delayMillis)
+    }
+
+    fun updateRepeatCount(repeatCount: Int) {
+        overlayAutomationCoordinator.updateRepeatCount(repeatCount)
+    }
+
+    fun updateDurationMillis(durationMillis: Long) {
+        overlayAutomationCoordinator.updateDurationMillis(durationMillis)
     }
 }
