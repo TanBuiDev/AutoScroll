@@ -83,6 +83,7 @@
     <string name="advanced_recording">Ghi màn hình</string>
     <string name="advanced_audio">Âm báo / ghi âm</string>
     <string name="advanced_boot">Chạy sau khi khởi động lại</string>
+    <string name="advanced_unavailable_note">Các tùy chọn này đang được lên kế hoạch và chưa hoạt động.</string>
     <string name="setting_theme">Giao diện</string>
     <string name="setting_language">Ngôn ngữ</string>
     <string name="theme_system">Theo hệ thống</string>
