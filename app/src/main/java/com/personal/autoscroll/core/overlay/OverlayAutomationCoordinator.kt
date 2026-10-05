@@ -1,11 +1,10 @@
 package com.personal.autoscroll.core.overlay
 
-import android.content.Context
-import com.personal.autoscroll.core.accessibility.AutoScrollAccessibilityService
-import com.personal.autoscroll.core.accessibility.ForegroundAppObserver
 import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
+import com.personal.autoscroll.core.gesture.GestureExecutor
 import com.personal.autoscroll.core.gesture.GestureMapper
+import com.personal.autoscroll.core.profile.ActiveProfileController
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.GestureAxis
@@ -15,7 +14,6 @@ import com.personal.autoscroll.domain.model.LanguageMode
 import com.personal.autoscroll.domain.model.PresetType
 import com.personal.autoscroll.domain.model.ScrollMode
 import com.personal.autoscroll.domain.model.applyGlobalSettings
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -28,17 +26,17 @@ import kotlinx.coroutines.launch
 
 @Singleton
 class OverlayAutomationCoordinator @Inject constructor(
-    @param:ApplicationContext private val context: Context,
     private val overlayController: OverlayController,
     private val automationController: AutomationController,
+    private val gestureExecutor: GestureExecutor,
     private val gestureMapper: GestureMapper,
-    private val foregroundAppObserver: ForegroundAppObserver,
+    private val activeProfileController: ActiveProfileController,
     private val settingsDataStore: SettingsDataStore,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private var profile: AppProfile = AppProfile.defaultForPackage(
-        packageName = "manual.overlay",
+    private var manualProfile: AppProfile = AppProfile.defaultForPackage(
+        packageName = MANUAL_PACKAGE,
         appName = "Manual Overlay",
         presetType = PresetType.VideoFeed,
     )
@@ -47,23 +45,26 @@ class OverlayAutomationCoordinator @Inject constructor(
     private var languageMode: LanguageMode = LanguageMode.System
     private var globalSettings: GlobalSettings = GlobalSettings.Default
 
-    fun updateActiveProfile(activeProfile: AppProfile?) {
-        if (activeProfile == null) return
-        profile = activeProfile.copy(
-            overlayConfig = activeProfile.overlayConfig.applyGlobalSettings(globalSettings),
-        )
-        overlayController.updateCompact(profile.overlayConfig)
-        overlayController.updateGestureAxis(profile.gestureConfig.axis)
-        overlayController.updateExpanded(profile)
+    init {
+        scope.launch {
+            activeProfileController.activeProfile.collectLatest {
+                refreshOverlays(currentEffectiveProfile())
+            }
+        }
+        scope.launch {
+            settingsDataStore.settings.collectLatest(::applyGlobalSettings)
+        }
     }
 
     fun showOverlay(languageMode: LanguageMode) {
         this.languageMode = languageMode
+        val profile = currentEffectiveProfile()
+
         overlayController.showCompact(
             config = profile.overlayConfig,
             gestureAxis = profile.gestureConfig.axis,
             languageMode = languageMode,
-            OverlayActions(
+            actions = OverlayActions(
                 onStartStop = { toggleAutomation() },
                 onNext = { runManualGesture(IntentDirection.NextItem) },
                 onPrevious = { runManualGesture(IntentDirection.PreviousItem) },
@@ -96,40 +97,39 @@ class OverlayAutomationCoordinator @Inject constructor(
 
     fun applyGlobalSettings(settings: GlobalSettings) {
         globalSettings = settings
-        profile = profile.copy(
-            overlayConfig = profile.overlayConfig.applyGlobalSettings(settings),
-        )
-        overlayController.updateCompact(profile.overlayConfig)
-        overlayController.updateExpanded(profile)
+        refreshOverlays(currentEffectiveProfile())
     }
 
     fun updateGestureAxis(axis: GestureAxis) {
-        profile = profile.copy(
-            gestureConfig = profile.gestureConfig.copy(axis = axis),
-        )
-        overlayController.updateGestureAxis(axis)
-        overlayController.updateExpanded(profile)
+        updateProfile {
+            copy(gestureConfig = gestureConfig.copy(axis = axis))
+        }
     }
 
     fun updateIntentDirection(direction: IntentDirection) {
-        profile = profile.copy(
-            gestureConfig = profile.gestureConfig.copy(intentDirection = direction),
-        )
-        overlayController.updateExpanded(profile)
+        updateProfile {
+            copy(gestureConfig = gestureConfig.copy(intentDirection = direction))
+        }
     }
 
     fun updateGestureDistance(distancePercent: Int) {
-        profile = profile.copy(
-            gestureConfig = profile.gestureConfig.copy(distancePercent = distancePercent),
-        )
-        overlayController.updateExpanded(profile)
+        updateProfile {
+            copy(
+                gestureConfig = gestureConfig.copy(
+                    distancePercent = distancePercent.coerceIn(5, 95),
+                ),
+            )
+        }
     }
 
     fun updateSwipeDuration(durationMillis: Long) {
-        profile = profile.copy(
-            gestureConfig = profile.gestureConfig.copy(swipeDurationMillis = durationMillis),
-        )
-        overlayController.updateExpanded(profile)
+        updateProfile {
+            copy(
+                gestureConfig = gestureConfig.copy(
+                    swipeDurationMillis = durationMillis.coerceIn(200L, 2_000L),
+                ),
+            )
+        }
     }
 
     fun updateScrollMode(mode: ScrollMode) {
@@ -137,8 +137,16 @@ class OverlayAutomationCoordinator @Inject constructor(
             copy(
                 timingConfig = timingConfig.copy(
                     mode = mode,
-                    repeatCount = if (mode == ScrollMode.Repeat) timingConfig.repeatCount ?: 1 else timingConfig.repeatCount,
-                    durationMillis = if (mode == ScrollMode.Timer) timingConfig.durationMillis ?: 30L * 60_000L else timingConfig.durationMillis,
+                    repeatCount = if (mode == ScrollMode.Repeat) {
+                        timingConfig.repeatCount ?: 1
+                    } else {
+                        timingConfig.repeatCount
+                    },
+                    durationMillis = if (mode == ScrollMode.Timer) {
+                        timingConfig.durationMillis ?: 30L * 60_000L
+                    } else {
+                        timingConfig.durationMillis
+                    },
                 ),
             )
         }
@@ -146,19 +154,31 @@ class OverlayAutomationCoordinator @Inject constructor(
 
     fun updateDelayMillis(delayMillis: Long) {
         updateProfile {
-            copy(timingConfig = timingConfig.copy(delayMillis = delayMillis.coerceAtLeast(500L)))
+            copy(
+                timingConfig = timingConfig.copy(
+                    delayMillis = delayMillis.coerceAtLeast(500L),
+                ),
+            )
         }
     }
 
     fun updateRepeatCount(repeatCount: Int) {
         updateProfile {
-            copy(timingConfig = timingConfig.copy(repeatCount = repeatCount.coerceAtLeast(1)))
+            copy(
+                timingConfig = timingConfig.copy(
+                    repeatCount = repeatCount.coerceAtLeast(1),
+                ),
+            )
         }
     }
 
     fun updateDurationMillis(durationMillis: Long) {
         updateProfile {
-            copy(timingConfig = timingConfig.copy(durationMillis = durationMillis.coerceAtLeast(1_000L)))
+            copy(
+                timingConfig = timingConfig.copy(
+                    durationMillis = durationMillis.coerceAtLeast(1_000L),
+                ),
+            )
         }
     }
 
@@ -171,12 +191,12 @@ class OverlayAutomationCoordinator @Inject constructor(
             return
         }
 
+        val profile = currentEffectiveProfile()
         automationController.start(
             scope = scope,
             timingConfig = profile.timingConfig,
-        ) {
-            dispatchGesture(profile)
-        }
+            gestureConfigProvider = { currentEffectiveProfile().gestureConfig },
+        )
         startAppChangeWatch(profile)
         overlayController.setRunning(true)
         if (profile.overlayConfig.autoCollapse) {
@@ -184,112 +204,123 @@ class OverlayAutomationCoordinator @Inject constructor(
         }
     }
 
-    private fun startAppChangeWatch(activeProfile: AppProfile) {
+    private fun startAppChangeWatch(profile: AppProfile) {
         appChangeJob?.cancel()
         appChangeJob = null
-        if (!activeProfile.timingConfig.stopOnAppChange || activeProfile.packageName == "manual.overlay") {
+        if (!profile.timingConfig.stopOnAppChange || profile.packageName == MANUAL_PACKAGE) {
             return
         }
 
-        val targetPackage = activeProfile.packageName
+        val targetPackage = profile.packageName
         appChangeJob = scope.launch {
-            foregroundAppObserver
-                .foregroundPackageExcluding(context.packageName)
-                .collectLatest { foregroundPackage ->
-                    if (
-                        automationController.isRunning &&
-                        foregroundPackage != null &&
-                        foregroundPackage != targetPackage
-                    ) {
-                        automationController.stop()
-                        overlayController.setRunning(false)
-                        appChangeJob = null
-                        cancel()
-                    }
+            activeProfileController.foregroundPackage.collectLatest { foregroundPackage ->
+                if (
+                    automationController.isRunning &&
+                    foregroundPackage != null &&
+                    foregroundPackage != targetPackage
+                ) {
+                    automationController.stop()
+                    overlayController.setRunning(false)
+                    appChangeJob = null
+                    cancel()
                 }
+            }
         }
     }
 
     private fun runManualGesture(direction: IntentDirection) {
         scope.launch {
-            dispatchGesture(
-                profile.copy(
-                    gestureConfig = profile.gestureConfig.copy(
-                        intentDirection = direction,
-                    ),
-                ),
+            val gestureConfig = currentEffectiveProfile().gestureConfig.copy(
+                intentDirection = direction,
             )
+            gestureExecutor.execute(gestureConfig)
         }
-    }
-
-    private suspend fun dispatchGesture(profile: AppProfile): Boolean {
-        val dispatcher = AutoScrollAccessibilityService.dispatcherOrNull() ?: return false
-        return dispatcher.dispatch(gestureMapper.map(profile.gestureConfig))
     }
 
     private fun toggleSettings() {
         overlayController.toggleExpanded(
-            profile = profile,
+            profile = currentEffectiveProfile(),
             languageMode = languageMode,
             actions = ExpandedOverlayActions(
-                onModeChanged = { mode ->
-                    updateProfile { copy(timingConfig = timingConfig.copy(mode = mode)) }
-                },
-                onDirectionChanged = { direction ->
-                    updateProfile { copy(gestureConfig = gestureConfig.copy(intentDirection = direction)) }
-                },
-                onDelayChanged = { delay ->
-                    updateProfile { copy(timingConfig = timingConfig.copy(delayMillis = delay)) }
-                },
-                onSwipeDurationChanged = { swipeDurationMillis ->
-                    updateProfile {
-                        copy(gestureConfig = gestureConfig.copy(swipeDurationMillis = swipeDurationMillis))
-                    }
-                },
+                onModeChanged = ::updateScrollMode,
+                onDirectionChanged = ::updateIntentDirection,
+                onDelayChanged = ::updateDelayMillis,
+                onSwipeDurationChanged = ::updateSwipeDuration,
                 onOverlayOrientationChanged = { orientation ->
                     updateProfile {
                         copy(overlayConfig = overlayConfig.copy(orientation = orientation))
                     }
                 },
                 onOpacityChanged = { opacity ->
-                    updateProfile {
-                        copy(overlayConfig = overlayConfig.copy(opacity = opacity))
+                    scope.launch {
+                        settingsDataStore.updateOverlayOpacity(opacity)
                     }
                 },
-                onRepeatCountChanged = { repeatCount ->
-                    updateProfile { copy(timingConfig = timingConfig.copy(repeatCount = repeatCount)) }
-                },
-                onDurationChanged = { duration ->
-                    updateProfile { copy(timingConfig = timingConfig.copy(durationMillis = duration)) }
-                },
+                onRepeatCountChanged = ::updateRepeatCount,
+                onDurationChanged = ::updateDurationMillis,
                 onPreview = {
                     overlayController.showGesturePreview(
-                        plan = gestureMapper.map(profile.gestureConfig),
+                        plan = gestureMapper.map(currentEffectiveProfile().gestureConfig),
                         languageMode = languageMode,
                     )
                 },
                 onSave = {
-                    overlayController.updateExpanded(profile)
+                    scope.launch {
+                        activeProfileController.saveActiveProfile()
+                    }
                     overlayController.collapseExpanded()
                 },
             ),
         )
     }
 
-    private fun updateProfile(update: AppProfile.() -> AppProfile) {
-        profile = profile.update()
-        if (profile.timingConfig.mode != ScrollMode.Repeat) {
-            profile = profile.copy(timingConfig = profile.timingConfig.copy(repeatCount = null))
+    private fun updateProfile(transform: AppProfile.() -> AppProfile) {
+        val activeProfile = activeProfileController.activeProfile.value
+        val baseProfile = activeProfile ?: manualProfile
+        val updated = normalizeProfile(baseProfile.transform())
+
+        if (activeProfile != null) {
+            activeProfileController.updateActiveProfile { updated }
+        } else {
+            manualProfile = updated
         }
-        if (profile.timingConfig.mode != ScrollMode.Timer) {
-            profile = profile.copy(timingConfig = profile.timingConfig.copy(durationMillis = null))
+
+        refreshOverlays(currentEffectiveProfile())
+    }
+
+    private fun normalizeProfile(profile: AppProfile): AppProfile {
+        var normalized = profile
+        if (normalized.timingConfig.mode != ScrollMode.Repeat) {
+            normalized = normalized.copy(
+                timingConfig = normalized.timingConfig.copy(repeatCount = null),
+            )
         }
-        profile = profile.copy(
-            overlayConfig = profile.overlayConfig.copy(
-                opacity = profile.overlayConfig.opacity.coerceIn(0.3f, 1f),
+        if (normalized.timingConfig.mode != ScrollMode.Timer) {
+            normalized = normalized.copy(
+                timingConfig = normalized.timingConfig.copy(durationMillis = null),
+            )
+        }
+        return normalized.copy(
+            overlayConfig = normalized.overlayConfig.copy(
+                opacity = normalized.overlayConfig.opacity.coerceIn(0.3f, 1f),
             ),
         )
+    }
+
+    private fun currentEffectiveProfile(): AppProfile {
+        val profile = activeProfileController.activeProfile.value ?: manualProfile
+        return profile.copy(
+            overlayConfig = profile.overlayConfig.applyGlobalSettings(globalSettings),
+        )
+    }
+
+    private fun refreshOverlays(profile: AppProfile) {
         overlayController.updateCompact(profile.overlayConfig)
+        overlayController.updateGestureAxis(profile.gestureConfig.axis)
         overlayController.updateExpanded(profile)
+    }
+
+    private companion object {
+        const val MANUAL_PACKAGE = "manual.overlay"
     }
 }
