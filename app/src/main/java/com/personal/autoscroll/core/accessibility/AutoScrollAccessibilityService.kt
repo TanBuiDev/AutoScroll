@@ -2,6 +2,7 @@ package com.personal.autoscroll.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.util.Log
+import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import com.personal.autoscroll.core.permissions.AccessibilityConsentStore
 import dagger.hilt.android.AndroidEntryPoint
@@ -12,11 +13,6 @@ class AutoScrollAccessibilityService : AccessibilityService() {
     @Inject lateinit var accessibilityConsentStore: AccessibilityConsentStore
 
     private var gestureDispatcher: GestureDispatcher? = null
-
-    override fun onCreate() {
-        super.onCreate()
-        attachService()
-    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -32,13 +28,23 @@ class AutoScrollAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() = Unit
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        detachService()
+        return super.onUnbind(intent)
+    }
+
     override fun onDestroy() {
-        if (currentService === this) {
-            currentService = null
-        }
-        AccessibilityServiceState.markDisconnected()
+        detachService()
         Log.d(TAG, "Accessibility service destroyed")
         super.onDestroy()
+    }
+
+    private fun detachService() {
+        if (currentService === this) {
+            currentService = null
+            gestureDispatcher = null
+            AccessibilityServiceState.markDisconnected()
+        }
     }
 
     companion object {

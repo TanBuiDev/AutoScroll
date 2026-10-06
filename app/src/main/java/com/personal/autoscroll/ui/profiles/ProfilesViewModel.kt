@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 data class ProfileEditState(
     val original: AppProfile? = null,
     val draft: AppProfile? = null,
+    val isSaving: Boolean = false,
+    val error: String? = null,
 ) {
     val isDirty: Boolean
         get() = draft != null && draft != original
@@ -50,6 +52,7 @@ class ProfilesViewModel @Inject constructor(
     }
 
     fun updateEditingProfile(transform: AppProfile.() -> AppProfile) {
+        if (_editState.value.isSaving) return
         val current = _editState.value.draft ?: return
         _editState.value = _editState.value.copy(
             draft = current.withConfigurationUpdate(transform),
@@ -58,9 +61,17 @@ class ProfilesViewModel @Inject constructor(
 
     fun saveEditingProfile() {
         val draft = _editState.value.draft ?: return
+        if (_editState.value.isSaving) return
+        _editState.value = _editState.value.copy(isSaving = true, error = null)
         viewModelScope.launch {
-            activeProfileController.saveProfile(draft)
-            _editState.value = ProfileEditState()
+            try {
+                activeProfileController.saveProfile(draft)
+                _editState.value = ProfileEditState()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _editState.value = _editState.value.copy(isSaving = false, error = error.message ?: "save")
+            }
         }
     }
 

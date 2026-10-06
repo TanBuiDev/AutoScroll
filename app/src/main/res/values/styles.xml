@@ -6,4 +6,10 @@
         <item name="android:statusBarColor">#07080A</item>
         <item name="android:windowActionBar">false</item>
     </style>
+    <style name="Theme.AutoScroll.Starting" parent="Theme.AutoScroll">
+        <item name="android:windowBackground">@drawable/brand_launch_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#F7FBFF</item>
+        <item name="android:navigationBarColor">#D6EDFF</item>
+    </style>
 </resources>

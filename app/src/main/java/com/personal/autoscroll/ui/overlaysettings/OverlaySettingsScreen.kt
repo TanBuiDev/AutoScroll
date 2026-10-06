@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.personal.autoscroll.ui.foundation.*
 import com.personal.autoscroll.R
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
@@ -57,7 +58,7 @@ fun OverlaySettingsScreen(viewModel: OverlaySettingsViewModel, showTitle: Boolea
                 FilterChip(
                     selected = it == settings.overlaySize,
                     onClick = { viewModel.updateOverlaySize(it) },
-                    label = { Text(it.toString()) },
+                    label = { Text(stringResource(it.labelRes())) },
                 )
             }
         }

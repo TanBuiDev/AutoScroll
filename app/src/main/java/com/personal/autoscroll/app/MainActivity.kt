@@ -24,6 +24,8 @@ import com.personal.autoscroll.core.permissions.AccessibilityConsentStore
 import com.personal.autoscroll.data.datastore.SettingsDataStore
 import com.personal.autoscroll.domain.model.GlobalSettings
 import com.personal.autoscroll.domain.model.ThemeMode
+import com.personal.autoscroll.R
+import com.personal.autoscroll.ui.branding.BrandLaunch
 import com.personal.autoscroll.ui.AppNavigation
 import com.personal.autoscroll.ui.advanced.AdvancedViewModel
 import com.personal.autoscroll.ui.automation.AutomationViewModel
@@ -48,11 +50,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setTheme(R.style.Theme_AutoScroll)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.statusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
 
         setContent {
+            BrandLaunch(window) {
             AutoScrollApp(
                 window = window,
                 viewModel = viewModel,
@@ -64,6 +68,7 @@ class MainActivity : ComponentActivity() {
                 onShowOverlay = viewModel::showOverlay,
                 onHideOverlay = viewModel::hideOverlay,
             )
+            }
         }
     }
 

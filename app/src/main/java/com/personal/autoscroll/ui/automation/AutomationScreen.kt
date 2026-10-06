@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -12,10 +16,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.personal.autoscroll.ui.foundation.*
 import com.personal.autoscroll.R
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.PresetType
@@ -25,16 +31,38 @@ import com.personal.autoscroll.ui.gesture.GestureScreen
 import com.personal.autoscroll.ui.timing.TimingScreen
 
 @Composable
-fun AutomationScreen(viewModel: AutomationViewModel) {
+fun AutomationScreen(viewModel: AutomationViewModel, onOpenCurrentApp: () -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val connected by viewModel.serviceConnected.collectAsStateWithLifecycle()
+    var chooseApp by remember { mutableStateOf(false) }
+    var confirmDiscard by remember { mutableStateOf(false) }
+    if (confirmDiscard) UnsavedChangesDialog(onKeepEditing = { confirmDiscard = false }, onDiscard = { viewModel.discard(); confirmDiscard = false })
+    var pendingApp by remember { mutableStateOf<SelectableApp?>(null) }
+    if (chooseApp) AppChooserDialog(viewModel, onDismiss = { chooseApp = false }, onSelect = { app ->
+        if (state.isDirty) pendingApp = app else { viewModel.selectApp(app); chooseApp = false }
+    })
+    pendingApp?.let { app ->
+        UnsavedChangesDialog(onKeepEditing = { pendingApp = null }, onDiscard = {
+            viewModel.discard(); viewModel.selectApp(app); pendingApp = null; chooseApp = false
+        })
+    }
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
             text = stringResource(R.string.nav_automation),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
 
+        Text(stringResource(R.string.profile_usage_help), style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = { viewModel.loadInstalledApps(); chooseApp = true }) {
+            Text(stringResource(R.string.choose_app))
+        }
+        if (!connected) {
+            Text(stringResource(R.string.accessibility_configuration_help), color = MaterialTheme.colorScheme.error)
+            OutlinedButton(onClick = onOpenCurrentApp) { Text(stringResource(R.string.action_check_permissions)) }
+        }
         val profile = state.profile
         if (profile == null) {
             Text(
@@ -44,11 +72,16 @@ fun AutomationScreen(viewModel: AutomationViewModel) {
             return@Column
         }
 
+        AppIdentity(profile)
+        AppPackageDetails(profile.packageName)
+        Text(stringResource(R.string.profile_name_explanation), style = MaterialTheme.typography.bodySmall)
         ProfileEditorContent(
             profile = profile,
             onProfileChange = viewModel::updateProfile,
         )
 
+      }
+        if (state.saveFailed) Text(stringResource(R.string.save_error), color = MaterialTheme.colorScheme.error)
         if (state.isDirty) {
             Text(
                 text = if (state.isPersisted) {
@@ -67,14 +100,14 @@ fun AutomationScreen(viewModel: AutomationViewModel) {
         ) {
             Button(
                 onClick = viewModel::save,
-                enabled = state.isDirty,
+                enabled = state.isDirty && !state.isSaving,
                 modifier = Modifier.weight(1f),
             ) {
-                Text(stringResource(R.string.action_save))
+                Text(stringResource(if (state.isSaving) R.string.action_saving else R.string.action_save_changes))
             }
             OutlinedButton(
-                onClick = viewModel::discard,
-                enabled = state.isDirty,
+                onClick = { confirmDiscard = true },
+                enabled = state.isDirty && !state.isSaving,
                 modifier = Modifier.weight(1f),
             ) {
                 Text(stringResource(R.string.action_discard))
@@ -83,12 +116,14 @@ fun AutomationScreen(viewModel: AutomationViewModel) {
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun ProfileEditorContent(
     profile: AppProfile,
     onProfileChange: (AppProfile.() -> AppProfile) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(stringResource(R.string.gesture_test_explanation), style = MaterialTheme.typography.bodySmall)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Switch(
                 checked = profile.enabled,
@@ -102,7 +137,7 @@ fun ProfileEditorContent(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = profile.profileStatus.name,
+                    text = stringResource(profile.profileStatus.labelRes()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -113,17 +148,13 @@ fun ProfileEditorContent(
             text = stringResource(R.string.label_preset),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PresetType.entries.chunked(3).forEach { presets ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                presets.forEach { preset ->
-                    FilterChip(
-                        selected = preset == profile.presetType,
-                        onClick = {
-                            onProfileChange { withPreset(preset) }
-                        },
-                        label = { Text(preset.label(), maxLines = 2) },
-                    )
-                }
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PresetType.entries.forEach { preset ->
+                FilterChip(
+                    selected = preset == profile.presetType,
+                    onClick = { onProfileChange { withPreset(preset) } },
+                    label = { Text(stringResource(preset.labelRes()), maxLines = 2) },
+                )
             }
         }
 

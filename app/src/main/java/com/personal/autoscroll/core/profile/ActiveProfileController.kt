@@ -154,7 +154,14 @@ class ActiveProfileController @Inject constructor(
         return persisted
     }
 
+    private var loadGeneration = 0L
+
+    fun selectPackage(packageName: String) {
+        scope.launch { loadPackage(packageName) }
+    }
+
     private suspend fun loadPackage(packageName: String?) {
+        val generation = ++loadGeneration
         _foregroundPackage.value = packageName
         if (packageName == null) {
             _persistedProfile.value = null
@@ -165,6 +172,7 @@ class ActiveProfileController @Inject constructor(
         }
 
         val persisted = profileRepository.getProfile(packageName)
+        if (generation != loadGeneration) return
         val draft = draftsByPackage[packageName]
             ?: persisted
             ?: defaultProfile(
@@ -174,7 +182,9 @@ class ActiveProfileController @Inject constructor(
 
         draftsByPackage[packageName] = draft
         _persistedProfile.value = persisted
-        _activeProfile.value = draft
+        _activeProfile.value = if (draft.appName == packageName) {
+            draft.copy(appName = resolveAppName(packageName) ?: draft.appName)
+        } else draft
         _isPersisted.value = persisted != null
         updateDirtyState()
     }

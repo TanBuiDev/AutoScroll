@@ -67,3 +67,9 @@ Việc tự động hóa có quy tắc xác định trước và do người dù
 Ở phiên bản hiện tại, hồ sơ và tùy chọn được lưu cục bộ trên thiết bị. Auto Scroll không tích hợp quảng cáo hoặc phân tích hành vi.
 
 AccessibilityService là tùy chọn, nhưng tính năng tự động vuốt cần dịch vụ này.
+
+## Branding assets
+
+The Figma branding source is https://www.figma.com/design/eeN7ZElqAUWoF0tsC3pDBe.
+The 512×512 store icon is `design-assets/branding/icon-play-store.png`.
+The original master and splash SVG/PNG exports are retained alongside it; launcher assets and launch styling are integrated into the Android app. Assets have not been uploaded to Google Play.

@@ -2,6 +2,8 @@ package com.personal.autoscroll.core.overlay
 
 import com.personal.autoscroll.core.automation.AutomationController
 import com.personal.autoscroll.core.automation.AutomationState
+import com.personal.autoscroll.core.automation.AutomationStopReason
+import com.personal.autoscroll.core.accessibility.AccessibilityServiceState
 import com.personal.autoscroll.core.gesture.GestureExecutor
 import com.personal.autoscroll.core.gesture.GestureMapper
 import com.personal.autoscroll.core.profile.ActiveProfileController
@@ -34,6 +36,7 @@ class OverlayAutomationCoordinator @Inject constructor(
     private val activeProfileController: ActiveProfileController,
     private val settingsDataStore: SettingsDataStore,
 ) {
+    val automationState = automationController.state
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var manualProfile: AppProfile = AppProfile.defaultForPackage(
@@ -50,6 +53,13 @@ class OverlayAutomationCoordinator @Inject constructor(
 
     init {
         scope.launch {
+            AccessibilityServiceState.isConnected.collectLatest { connected ->
+                if (!connected && automationController.isRunning) {
+                    stopAutomation(AutomationStopReason.ServiceDisconnected)
+                }
+            }
+        }
+        scope.launch {
             activeProfileController.activeProfile.collectLatest { profile ->
                 if (
                     profile != null &&
@@ -57,7 +67,7 @@ class OverlayAutomationCoordinator @Inject constructor(
                     runningPackageName == profile.packageName
                 ) {
                     when {
-                        !profile.enabled -> stopAutomation()
+                        !profile.enabled -> stopAutomation(AutomationStopReason.ProfileDisabled)
                         runningTimingConfig != null && runningTimingConfig != profile.timingConfig ->
                             restartAutomation(profile)
                     }
@@ -214,7 +224,7 @@ class OverlayAutomationCoordinator @Inject constructor(
         collapseOverlay: Boolean,
     ) {
         if (!profile.enabled) {
-            stopAutomation()
+            stopAutomation(AutomationStopReason.ProfileDisabled)
             return
         }
 
@@ -226,7 +236,7 @@ class OverlayAutomationCoordinator @Inject constructor(
             gestureConfigProvider = { currentEffectiveProfile().gestureConfig },
         )
         startAppChangeWatch(profile)
-        overlayController.setRunning(true)
+        overlayController.setRunning(automationController.isRunning)
         if (collapseOverlay && profile.overlayConfig.autoCollapse) {
             overlayController.collapseExpanded()
         }
@@ -241,8 +251,8 @@ class OverlayAutomationCoordinator @Inject constructor(
         )
     }
 
-    private fun stopAutomation() {
-        automationController.stop()
+    private fun stopAutomation(reason: AutomationStopReason = AutomationStopReason.UserStopped) {
+        automationController.stop(reason)
         appChangeJob?.cancel()
         appChangeJob = null
         runningPackageName = null
@@ -265,7 +275,7 @@ class OverlayAutomationCoordinator @Inject constructor(
                     foregroundPackage != null &&
                     foregroundPackage != targetPackage
                 ) {
-                    stopAutomation()
+                    stopAutomation(AutomationStopReason.AppChanged)
                     cancel()
                 }
             }

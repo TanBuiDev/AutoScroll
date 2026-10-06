@@ -8,6 +8,7 @@ import com.personal.autoscroll.core.accessibility.AccessibilityServiceState
 import com.personal.autoscroll.core.permissions.AccessibilityConsentStore
 import com.personal.autoscroll.core.permissions.PermissionNavigator
 import com.personal.autoscroll.core.permissions.PermissionState
+import com.personal.autoscroll.core.overlay.OverlayAutomationCoordinator
 import com.personal.autoscroll.core.profile.ActiveProfileController
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.usecase.RunTestGesture
@@ -56,7 +57,9 @@ class CurrentAppViewModel @Inject constructor(
     private val permissionNavigator: PermissionNavigator,
     private val runTestGesture: RunTestGesture,
     private val accessibilityConsentStore: AccessibilityConsentStore,
+    private val overlayAutomationCoordinator: OverlayAutomationCoordinator,
 ) : ViewModel() {
+    val automationState = overlayAutomationCoordinator.automationState
     private val manualState = MutableStateFlow(CurrentAppUiState())
     private val permissionRefresh = MutableStateFlow(0)
 
@@ -91,7 +94,7 @@ class CurrentAppViewModel @Inject constructor(
             accessibilityConsentAccepted = consentAccepted,
             permissionState = PermissionState(
                 accessibilityEnabled = accessibilityEnabled,
-                accessibilityConnected = serviceConnected || accessibilityEnabled,
+                accessibilityConnected = serviceConnected,
                 overlayPermissionGranted = permissionNavigator.canDrawOverlays(),
             ),
         )
@@ -172,6 +175,8 @@ class CurrentAppViewModel @Inject constructor(
     fun openPrivacyPolicy() {
         permissionNavigator.openPrivacyPolicy()
     }
+
+    fun openAppSettings() = permissionNavigator.openAppSettings()
 
     fun openOverlaySettings() {
         permissionNavigator.openOverlaySettings()

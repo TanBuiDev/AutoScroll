@@ -3,6 +3,8 @@ package com.personal.autoscroll.ui.profiles
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,13 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.personal.autoscroll.ui.foundation.*
 import com.personal.autoscroll.R
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.ui.automation.ProfileEditorContent
 import com.personal.autoscroll.ui.foundation.LocalizedFormatters
 
 @Composable
-fun ProfilesScreen(viewModel: ProfilesViewModel) {
+fun ProfilesScreen(viewModel: ProfilesViewModel, onConfigureApp: () -> Unit) {
     val profiles by viewModel.profiles.collectAsStateWithLifecycle()
     val editState by viewModel.editState.collectAsStateWithLifecycle()
     var pendingDelete by remember { mutableStateOf<AppProfile?>(null) }
@@ -41,6 +44,9 @@ fun ProfilesScreen(viewModel: ProfilesViewModel) {
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
+        Text(stringResource(R.string.profiles_description), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.profile_usage_help), style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = onConfigureApp) { Text(stringResource(R.string.choose_app)) }
         if (profiles.isEmpty()) {
             Text(
                 text = stringResource(R.string.profiles_empty),
@@ -58,55 +64,15 @@ fun ProfilesScreen(viewModel: ProfilesViewModel) {
             }
         }
 
-        editState.draft?.let { draft ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.profile_editing, draft.appName),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    ProfileEditorContent(
-                        profile = draft,
-                        onProfileChange = viewModel::updateEditingProfile,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Button(
-                            onClick = viewModel::saveEditingProfile,
-                            enabled = editState.isDirty,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.action_save))
-                        }
-                        OutlinedButton(
-                            onClick = viewModel::cancelEdit,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.action_cancel))
-                        }
-                    }
-                }
-            }
-        }
         Spacer(Modifier.height(24.dp))
     }
+
+    if (editState.draft != null) ProfileEditorDialog(viewModel, editState)
 
     pendingDelete?.let { profile ->
         ConfirmProfileActionDialog(
             title = stringResource(R.string.profile_delete_title),
-            message = stringResource(R.string.profile_delete_message, profile.appName),
+            message = stringResource(R.string.profile_delete_message, appDisplayName(profile.appName, profile.packageName)),
             confirmLabel = stringResource(R.string.action_delete),
             onDismiss = { pendingDelete = null },
             onConfirm = {
@@ -119,7 +85,7 @@ fun ProfilesScreen(viewModel: ProfilesViewModel) {
     pendingReset?.let { profile ->
         ConfirmProfileActionDialog(
             title = stringResource(R.string.profile_reset_title),
-            message = stringResource(R.string.profile_reset_message, profile.appName),
+            message = stringResource(R.string.profile_reset_message, appDisplayName(profile.appName, profile.packageName)),
             confirmLabel = stringResource(R.string.action_reset),
             onDismiss = { pendingReset = null },
             onConfirm = {
@@ -130,6 +96,7 @@ fun ProfilesScreen(viewModel: ProfilesViewModel) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProfileRow(
     profile: AppProfile,
@@ -146,28 +113,11 @@ private fun ProfileRow(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = profile.appName,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = profile.packageName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(
-                    R.string.profile_summary,
-                    profile.profileStatus.toString(),
-                    profile.presetType.toString(),
-                    profile.timingConfig.mode.toString(),
-                    LocalizedFormatters.seconds(profile.timingConfig.delayMillis),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            AppIdentity(profile)
+            Text(scrollSummary(profile), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(profile.profileStatus.labelRes()), style = MaterialTheme.typography.bodySmall)
+            AppPackageDetails(profile.packageName)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 TextButton(onClick = onEdit) {
                     Text(stringResource(R.string.action_edit))
                 }

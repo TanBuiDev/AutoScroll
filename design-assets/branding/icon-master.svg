@@ -1,0 +1,40 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="520" height="520" viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Master 1024&#195;&#151;1024">
+<g clip-path="url(#clip0_0_4)">
+<rect width="520" height="520" rx="96.4844" fill="url(#paint0_linear_0_4)"/>
+<ellipse id="Ellipse" cx="203.125" cy="71.0938" rx="248.828" ry="132.031" fill="#61FFF5" fill-opacity="0.1"/>
+<ellipse id="Ellipse_2" cx="307.227" cy="462.109" rx="266.602" ry="106.641" fill="#001494" fill-opacity="0.2"/>
+<rect id="Rectangle" x="137.109" y="231.055" width="13.2031" height="88.8672" rx="6.60156" fill="#99DBFF" fill-opacity="0.35"/>
+<rect id="Rectangle_2" x="166.562" y="302.148" width="12.1875" height="76.1719" rx="6.09375" fill="#8FCCFF" fill-opacity="0.34"/>
+<rect id="Rectangle_3" x="342.266" y="134.57" width="13.2031" height="83.2812" rx="6.60156" fill="#99E8FF" fill-opacity="0.34"/>
+<rect id="Rectangle_4" x="369.688" y="175.195" width="12.6953" height="76.1719" rx="6.09375" fill="#8CD6FF" fill-opacity="0.33"/>
+<g id="Double Arrow" filter="url(#filter0_d_0_4)">
+<path d="M242.227 105.625H199.062L260 59.9219L320.938 105.625H277.773V412.344H320.938L260 460.078L199.062 412.344H242.227V105.625Z" fill="url(#paint1_linear_0_4)"/>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_0_4" x="189.922" y="55.8594" width="140.156" height="418.438" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="5.07812"/>
+<feGaussianBlur stdDeviation="4.57031"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.15 0 0 0 0 0.55 0 0 0 0.24 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_4"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_4" result="shape"/>
+</filter>
+<linearGradient id="paint0_linear_0_4" x1="51.7455" y1="398.907" x2="433.475" y2="38.385" gradientUnits="userSpaceOnUse">
+<stop stop-color="#051AEB"/>
+<stop offset="0.58" stop-color="#056EFA"/>
+<stop offset="1" stop-color="#4AF5F2"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_4" x1="207.768" y1="374.33" x2="367.095" y2="325.804" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="0.55" stop-color="#E6FAFF"/>
+<stop offset="1" stop-color="#B3EBFF"/>
+</linearGradient>
+<clipPath id="clip0_0_4">
+<rect width="520" height="520" rx="96.4844" fill="white"/>
+</clipPath>
+</defs>
+</svg>

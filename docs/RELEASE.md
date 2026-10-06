@@ -28,7 +28,7 @@ Before shipping a build that changes the Room schema:
 5. Verify existing user data survives the migration.
 6. Never replace a required migration with destructive fallback for a production release.
 
-Version 22.4.1 uses database schema version 2 and MIGRATION_1_2.
+Version 22.4.2 uses database schema version 2 and MIGRATION_1_2.
 
 ## Profile lifecycle checks
 
@@ -54,6 +54,9 @@ Verify each timing mode:
 - stop-on-app-change stops the active run
 - changing TimingConfig while running restarts the run with the new timing
 - changing GestureConfig while running affects subsequent gestures without restarting
+- rapid timing changes keep the newest run state; cancelled runs cannot overwrite it
+- the Current screen retains the completed swipe count and the correct stop reason
+- timer countdown starts after the configured start delay
 
 Verify gesture fields:
 
@@ -81,6 +84,8 @@ The accessibility service must keep android:canRetrieveWindowContent set to fals
 Before any Google Play release verify:
 
 - first-time Accessibility access shows the in-app prominent disclosure
+- enabling Accessibility shows a waiting state until the service actually connects
+- disconnecting the service stops automation with a service-disconnected reason
 - the user must tap "I understand and agree" before Accessibility Settings opens
 - Test and Overlay automation remain gated until consent is accepted
 - Privacy Policy opens from both the disclosure and Advanced settings
@@ -91,6 +96,10 @@ Before any Google Play release verify:
 Policy requirements can change independently of this repository, so re-check the current Play Console guidance for every store release.
 
 ## APK verification
+
+Verify both English and Vietnamese can be selected after installing from an AAB,
+including when the device system language differs from the selected app language.
+Language resource splitting is disabled so both translations remain available.
 
 For a candidate commit:
 
@@ -138,3 +147,9 @@ Before tagging:
 ## Rollback considerations
 
 If a release containing a Room migration must be rolled back, do not assume an older APK can open a database that has already migrated forward. Treat database downgrade behavior as a separate compatibility problem and test it explicitly before distributing a rollback build.
+
+## GitHub preview v22.4.2
+
+This GitHub prerelease uses the local test signing certificate, not a production/Play signing identity. Its release-build APK is installable and can update this machine's existing test-signed installation. Android may require uninstalling a build signed by a different key; export/back up any settings first.
+
+Release contents: installable APK, SHA-256 checksums and the Figma 512×512 store icon. No keystore or signing passwords are uploaded. CI must succeed on the final main commit before publication. User verification of the updated UI and ColorOS background behavior remains pending.

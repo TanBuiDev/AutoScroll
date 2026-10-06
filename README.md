@@ -18,6 +18,9 @@ The core automation, per-app profile lifecycle, Room persistence, migration cove
 - Per-app profiles backed by Room with draft vs persisted state, dirty-state tracking, in-memory draft preservation when switching foreground apps, Edit/Delete/Reset actions, lifecycle status, presets, and Custom mode.
 - Gesture configuration for next/previous intent, vertical/horizontal axis, distance, start X/Y, duration, and inverted physical direction.
 - Timing modes: Once, Repeat, Until Stop, and Timer.
+- Current screen shows completed swipe count, timer countdown, and why a run stopped.
+- Accessibility readiness distinguishes an enabled permission from a connected service.
+- English and Vietnamese resources are included together in Play bundles for manual language switching.
 - Configurable start delay and stop-on-app-change behavior.
 - Running automation restarts with the latest timing configuration when timing changes, while gesture configuration is read live.
 - App settings persisted with DataStore.
@@ -33,8 +36,8 @@ The core automation, per-app profile lifecycle, Room persistence, migration cove
 The main app is organized into four tabs:
 
 - **Current**: permission state, active app/profile summary, gesture test, overlay controls, and dirty-aware Save.
-- **Profiles**: saved profiles with Edit, Delete, and Reset.
-- **Automation**: the active profile editor for preset, gesture, and timing configuration.
+- **Apps**: saved per-app scrolling settings with readable summaries, app icons, package details, a dedicated editor, delete and restore-default actions.
+- **Scrolling**: select an installed app or use the detected app, then configure gestures and timing. Save/discard controls remain visible; leaving with unsaved changes asks for confirmation. Start scrolling with the floating play button.
 - **Overlay**: floating control settings, theme, language, and advanced gated options.
 
 ## Profile Lifecycle

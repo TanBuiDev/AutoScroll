@@ -20,6 +20,9 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.activity.compose.BackHandler
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.personal.autoscroll.ui.foundation.UnsavedChangesDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +64,25 @@ fun AppNavigation(
     onHideOverlay: () -> Unit,
 ) {
     var destination by remember { mutableStateOf(AppDestination.CurrentApp) }
+    val automationState by automationViewModel.uiState.collectAsStateWithLifecycle()
+    var pendingDestination by remember { mutableStateOf<AppDestination?>(null) }
+    val currentScroll = rememberScrollState()
+    val profilesScroll = rememberScrollState()
+    val automationScroll = rememberScrollState()
+    val overlayScroll = rememberScrollState()
+    fun navigate(target: AppDestination) {
+        if (target == destination || automationState.isSaving) return
+        if (destination == AppDestination.Automation && automationState.isDirty) pendingDestination = target
+        else destination = target
+    }
+    BackHandler(enabled = destination == AppDestination.Automation && automationState.isDirty) {
+        pendingDestination = AppDestination.CurrentApp
+    }
+    pendingDestination?.let { target ->
+        UnsavedChangesDialog(onKeepEditing = { pendingDestination = null }, onDiscard = {
+            automationViewModel.discard(); destination = target; pendingDestination = null
+        })
+    }
 
     Surface(
         modifier = Modifier
@@ -100,7 +122,7 @@ fun AppNavigation(
                         AppDestination.entries.forEach { item ->
                             Tab(
                                 selected = item == destination,
-                                onClick = { destination = item },
+                                onClick = { navigate(item) },
                                 text = { Text(stringResource(item.labelRes), maxLines = 1) },
                             )
                         }
@@ -112,18 +134,23 @@ fun AppNavigation(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
+                    .then(if (destination == AppDestination.Automation) Modifier else Modifier.verticalScroll(when (destination) {
+                        AppDestination.CurrentApp -> currentScroll
+                        AppDestination.Profiles -> profilesScroll
+                        AppDestination.Automation -> automationScroll
+                        AppDestination.Overlay -> overlayScroll
+                    }))
                     .padding(horizontal = 16.dp, vertical = 16.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     when (destination) {
                         AppDestination.CurrentApp -> CurrentAppScreen(
                             viewModel = currentAppViewModel,
                             onShowOverlay = onShowOverlay,
                             onHideOverlay = onHideOverlay,
                         )
-                        AppDestination.Profiles -> ProfilesScreen(profilesViewModel)
-                        AppDestination.Automation -> AutomationScreen(automationViewModel)
+                        AppDestination.Profiles -> ProfilesScreen(profilesViewModel, onConfigureApp = { navigate(AppDestination.Automation) })
+                        AppDestination.Automation -> AutomationScreen(automationViewModel, onOpenCurrentApp = { navigate(AppDestination.CurrentApp) })
                         AppDestination.Overlay -> OverlayScreen(
                             overlaySettingsViewModel = overlaySettingsViewModel,
                             advancedViewModel = advancedViewModel,

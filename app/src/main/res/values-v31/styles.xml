@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AutoScroll.Starting" parent="Theme.AutoScroll">
+        <item name="android:windowSplashScreenBackground">#F7FBFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#F7FBFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#F7FBFF</item>
+        <item name="android:navigationBarColor">#D6EDFF</item>
+    </style>
+</resources>

@@ -70,7 +70,13 @@ class ExpandedOverlay(
             contentDescription = context.getString(R.string.overlay_drag_handle_description)
             setOnTouchListener(createDragTouchListener())
         })
-        addView(label(context, profile.appName, size = 12f, color = Palette.TextMuted).apply {
+        val displayName = if (profile.packageName == "manual.overlay") {
+            context.getString(R.string.manual_overlay_name)
+        } else {
+            profile.appName.takeIf { it.isNotBlank() && it != profile.packageName }
+                ?: context.getString(R.string.app_name_unavailable)
+        }
+        addView(label(context, displayName, size = 12f, color = Palette.TextMuted).apply {
             setPadding(0, dp(2), 0, dp(10))
         })
 

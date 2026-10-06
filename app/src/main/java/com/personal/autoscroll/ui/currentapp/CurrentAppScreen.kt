@@ -25,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.personal.autoscroll.ui.foundation.*
 import com.personal.autoscroll.R
+import com.personal.autoscroll.core.automation.AutomationState
+import com.personal.autoscroll.core.automation.AutomationStopReason
 import com.personal.autoscroll.domain.model.AppProfile
 import com.personal.autoscroll.domain.model.IntentDirection
 import com.personal.autoscroll.domain.model.ScrollMode
@@ -46,6 +52,7 @@ fun CurrentAppScreen(
     onHideOverlay: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val automationState by viewModel.automationState.collectAsStateWithLifecycle()
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
@@ -57,12 +64,14 @@ fun CurrentAppScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
             PermissionCard(
                 title = stringResource(R.string.action_accessibility),
-                value = if (state.permissionState.accessibilityConnected) {
+                value = if (state.permissionState.isAccessibilityReady) {
                     stringResource(R.string.value_connected)
+                } else if (state.permissionState.accessibilityEnabled) {
+                    stringResource(R.string.value_connecting)
                 } else {
                     stringResource(R.string.value_required)
                 },
-                isReady = state.permissionState.accessibilityConnected,
+                isReady = state.permissionState.isAccessibilityReady,
                 onClick = viewModel::requestAccessibilityAccess,
                 modifier = Modifier.weight(1f),
             )
@@ -99,8 +108,16 @@ fun CurrentAppScreen(
             onHideOverlay = onHideOverlay,
             testEnabled = state.accessibilityConsentAccepted &&
                 state.profile != null &&
-                state.permissionState.accessibilityConnected,
+                state.permissionState.isAccessibilityReady,
             saveEnabled = state.profile != null && state.profileDirty,
+        )
+
+        AutomationStatusCard(automationState)
+
+        BackgroundServiceHelp(
+            connected = state.permissionState.isAccessibilityReady,
+            onAppSettings = viewModel::openAppSettings,
+            onAccessibilitySettings = viewModel::requestAccessibilityAccess,
         )
 
         TextButton(onClick = viewModel::showAccessibilityDisclosure) {
@@ -131,6 +148,46 @@ fun CurrentAppScreen(
             onAccept = viewModel::acceptAccessibilityDisclosure,
             onPrivacyPolicy = viewModel::openPrivacyPolicy,
         )
+    }
+}
+
+@Composable
+private fun AutomationStatusCard(state: AutomationState) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(stringResource(R.string.automation_status_title), style = MaterialTheme.typography.titleSmall)
+            val status = when (state) {
+                AutomationState.Idle -> R.string.automation_idle
+                is AutomationState.Running -> R.string.automation_running
+                is AutomationState.Stopped -> when (state.reason) {
+                    AutomationStopReason.Completed -> R.string.automation_completed
+                    AutomationStopReason.TimerExpired -> R.string.automation_timer_expired
+                    AutomationStopReason.UserStopped -> R.string.automation_user_stopped
+                    AutomationStopReason.AppChanged -> R.string.automation_app_changed
+                    AutomationStopReason.ProfileDisabled -> R.string.automation_profile_disabled
+                    AutomationStopReason.ServiceDisconnected -> R.string.automation_service_disconnected
+                    AutomationStopReason.GestureFailed -> R.string.automation_gesture_failed
+                    AutomationStopReason.Interrupted -> R.string.automation_interrupted
+                }
+            }
+            Text(stringResource(status))
+            val count = when (state) {
+                AutomationState.Idle -> null
+                is AutomationState.Running -> state.completedGestures
+                is AutomationState.Stopped -> state.completedGestures
+            }
+            count?.let { Text(stringResource(R.string.automation_completed_count, it)) }
+            (state as? AutomationState.Running)?.remainingMillis?.let {
+                Text(stringResource(R.string.automation_time_remaining, LocalizedFormatters.seconds(it)))
+            }
+        }
     }
 }
 
@@ -271,12 +328,12 @@ private fun ProfileCard(
             ) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = foregroundAppName ?: profile?.appName ?: stringResource(R.string.value_unknown),
+                        text = appDisplayName(foregroundAppName ?: profile?.appName, foregroundPackage ?: profile?.packageName),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
-                    PackagePill(foregroundPackage ?: profile?.packageName ?: stringResource(R.string.value_unknown))
+                    AppPackageDetails(foregroundPackage ?: profile?.packageName)
                 }
                 StatusPill(
                     text = if (profilePersisted) {
@@ -325,7 +382,7 @@ private fun ProfileCard(
             }
             StatItem(
                 label = stringResource(R.string.label_status),
-                value = profile?.profileStatus?.name ?: stringResource(R.string.value_unknown),
+                value = profile?.profileStatus?.let { stringResource(it.labelRes()) } ?: stringResource(R.string.value_unknown),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -461,4 +518,32 @@ private fun ScrollMode.label(): String = when (this) {
     ScrollMode.Repeat -> stringResource(R.string.mode_repeat)
     ScrollMode.UntilStop -> stringResource(R.string.mode_until_stop)
     ScrollMode.Timer -> stringResource(R.string.mode_timer)
+}
+
+
+@Composable
+private fun BackgroundServiceHelp(
+    connected: Boolean,
+    onAppSettings: () -> Unit,
+    onAccessibilitySettings: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TextButton(onClick = { expanded = !expanded }) {
+                Text(stringResource(R.string.background_help_title), fontWeight = FontWeight.SemiBold)
+            }
+            if (expanded) {
+                Text(stringResource(R.string.background_help_reason), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.background_help_steps), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.background_help_recovery), style = MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick = onAppSettings, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.open_app_settings))
+                }
+                if (!connected) OutlinedButton(onClick = onAccessibilitySettings, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.action_accessibility))
+                }
+            }
+        }
+    }
 }

@@ -24,8 +24,8 @@ android {
         applicationId = "com.personal.autoscroll"
         minSdk = 26
         targetSdk = 36
-        versionCode = 220401
-        versionName = "22.4.1"
+        versionCode = 220402
+        versionName = "22.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -67,6 +67,13 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    // Both languages must be available when the user changes language in the app.
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 }
 
